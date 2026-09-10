@@ -1,182 +1,127 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"> <!--[span_0](start_span)[span_0](end_span) -->
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8"> <!--[span_1](start_span)[span_1](end_span) -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!--[span_2](start_span)[span_2](end_span) -->
-    <title>Samball</title> <!--[span_3](start_span)[span_3](end_span) -->
-    <link rel="stylesheet" href="style.css"> <!--[span_4](start_span)[span_4](end_span) -->
-    <link rel="icon" type="image/png" href="logo.png"> <!--[span_5](start_span)[span_5](end_span) -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet"> <!--[span_6](start_span)[span_6](end_span) -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Samball - لعبة تكسير الطوب</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <!-- شاشة اختيار التطبيق / الأقسام[span_7](start_span)[span_7](end_span) -->
-    <div id="homeScreen" class="screen"> <!--[span_8](start_span)[span_8](end_span) -->
-        <div class="home-container"> <!--[span_9](start_span)[span_9](end_span) -->
-            <header class="home-header"> <!--[span_10](start_span)[span_10](end_span) -->
-                <img src="logo.png" alt="شعار الأرشيف" class="main-logo"> <!--[span_11](start_span)[span_11](end_span) -->
-                <h1>Samball</h1> <!--[span_12](start_span)[span_12](end_span) -->
-                <p>اختر اللعبة أو القسم للبدء بالاستمتاع والتحدي</p> <!--[span_13](start_span)[span_13](end_span) -->
+    <!-- شاشة الصفحة الرئيسية -->
+    <div id="homeScreen" class="screen">
+        <div class="home-container">
+            <header class="home-header">
+                <img src="logo.png" alt="شعار اللعبة" class="main-logo">
+                <h1>Samball</h1>
+                <p>تحدى مهاراتك واجمع الكوينز لشراء الكور الحصرية!</p>
             </header>
 
-            <div class="apps-grid"> <!--[span_14](start_span)[span_14](end_span) -->
-                <div class="app-card" onclick="openGameMenu()"> <!--[span_15](start_span)[span_15](end_span) -->
-                    <div class="app-icon-wrapper"> <!--[span_16](start_span)[span_16](end_span) -->
-                        <img src="logo.png" alt="تكسير الطوب" class="app-icon"> <!--[span_17](start_span)[span_17](end_span) -->
+            <div class="apps-grid">
+                <div class="app-card" onclick="openGameMenu()">
+                    <div class="app-icon-wrapper">
+                        <img src="logo.png" alt="بدء اللعب" class="app-icon">
                     </div>
-                    <h3>Samball</h3> <!--[span_18](start_span)[span_18](end_span) -->
-                    <p>أقسام متعددة ومستويات سرعة مختلفة</p> <!--[span_19](start_span)[span_19](end_span) -->
-                    <span class="app-badge">تشغيل</span> <!--[span_20](start_span)[span_20](end_span) -->
+                    <h3>بدء التحدي</h3>
+                    <p>مستويات متدرجة متصاعدة</p>
+                    <span class="app-badge">تشغيل 🎮</span>
                 </div>
 
-                <!-- إضافة واجهة المتجر الجديد للإصدار 4.0 -->
                 <div class="app-card shop-card" onclick="openShopMenu()">
                     <div class="app-icon-wrapper">
                         <span class="app-icon shop-icon">🛒</span>
                     </div>
-                    <h3>متجر Samball</h3>
-                    <p>أشكال حصرية للكرة بتأثيرات بصرية</p>
-                    <span class="app-badge shop-badge">جديد 🔥</span>
+                    <h3>متجر الكور (100+)</h3>
+                    <p>اشترِ كوراً جديدة أو خصص صورتك الشخصية</p>
+                    <span class="app-badge shop-badge">المتجر 🔥</span>
                 </div>
             </div>
 
-            <footer class="home-footer"> <!--[span_21](start_span)[span_21](end_span) -->
-                <p>تصميم وتطوير: أنس 🌟</p> <!--[span_22](start_span)[span_22](end_span) -->
+            <footer class="home-footer">
+                <p>تصميم وتطوير: أنس 🌟</p>
             </footer>
         </div>
     </div>
 
-    <!-- شاشة اختيار مستويات الصعوبة[span_23](start_span)[span_23](end_span) -->
-    <div id="levelMenuScreen" class="screen hidden"> <!--[span_24](start_span)[span_24](end_span) -->
-        <div class="menu-container"> <!--[span_25](start_span)[span_25](end_span) -->
-            <h2>اختر مستوى الصعوبة والتحدي</h2> <!--[span_26](start_span)[span_26](end_span) -->
-            <p>كل قسم له سرعة وتحدٍ فريد، العب بالترتيب لفتح المستويات:</p> <!--[span_27](start_span)[span_27](end_span) -->
+    <!-- شاشة اختيار مستويات الصعوبة -->
+    <div id="levelMenuScreen" class="screen hidden">
+        <div class="menu-container">
+            <h2>اختر المستوى</h2>
+            <p>يجب عليك الفوز بكل مستوى لفتح المستوى الذي يليه:</p>
             
-            <div class="difficulty-buttons"> <!--[span_28](start_span)[span_28](end_span) -->
-                <!-- المستوى 1: سهل (متاح دائماً)[span_29](start_span)[span_29](end_span) -->
-                <button class="diff-btn easy" id="btn-level-1" onclick="selectLevel(1)"> <!--[span_30](start_span)[span_30](end_span) -->
-                    <span class="diff-title">القسم السهل 🟢</span> <!--[span_31](start_span)[span_31](end_span) -->
-                    <span class="diff-desc">سرعة هادئة ومناسب للاسترخاء</span> <!--[span_32](start_span)[span_32](end_span) -->
-                </button>
-
-                <!-- المستوى 2: متوسط (مقفل في البداية)[span_33](start_span)[span_33](end_span) -->
-                <button class="diff-btn medium locked" id="btn-level-2" onclick="selectLevel(2)"> <!--[span_34](start_span)[span_34](end_span) -->
-                    <span class="diff-title">القسم المتوسط 🟡 <span class="lock-icon">🔒</span></span> <!--[span_35](start_span)[span_35](end_span) -->
-                    <span class="diff-desc">سرعة متوسطة وتحدي متوازن</span> <!--[span_36](start_span)[span_36](end_span) -->
-                </button>
-
-                <!-- المستوى 3: صعب (مقفل)[span_37](start_span)[span_37](end_span) -->
-                <button class="diff-btn hard locked" id="btn-level-3" onclick="selectLevel(3)"> <!--[span_38](start_span)[span_38](end_span) -->
-                    <span class="diff-title">القسم الصعب 🟠 <span class="lock-icon">🔒</span></span> <!--[span_39](start_span)[span_39](end_span) -->
-                    <span class="diff-desc">سريع ومثير لردود الفعل السريعة</span> <!--[span_40](start_span)[span_40](end_span) -->
-                </button>
-
-                <!-- المستوى 4: صعب جداً (مقفل)[span_41](start_span)[span_41](end_span) -->
-                <button class="diff-btn extreme locked" id="btn-level-4" onclick="selectLevel(4)"> <!--[span_42](start_span)[span_42](end_span) -->
-                    <span class="diff-title">الصعب جداً 🔴 <span class="lock-icon">🔒</span></span> <!--[span_43](start_span)[span_43](end_span) -->
-                    <span class="diff-desc">فائق السرعة، للاعبين الأسطوريين فقط!</span> <!--[span_44](start_span)[span_44](end_span) -->
-                </button>
-
-                <!-- المستوى 5: المستحيل (مقلب الـ 100$)[span_45](start_span)[span_45](end_span) -->
-                <button class="diff-btn impossible locked" id="btn-level-5" onclick="selectLevel(5)"> <!--[span_46](start_span)[span_46](end_span) -->
-                    <span class="diff-title">المستوى المستحيل (اكسب 100$ 💵) <span class="lock-icon">🔒</span></span> <!--[span_47](start_span)[span_47](end_span) -->
-                    <span class="diff-desc">صعب بجنون! اللي يكسبه ياخد الجائزة</span> <!--[span_48](start_span)[span_48](end_span) -->
-                </button>
+            <div class="difficulty-buttons">
+                <!-- يتم توليد المستويات عبر JavaScript بشكل ديناميكي مرتب -->
             </div>
 
-            <button class="back-btn" onclick="backToHome()">العودة للرئيسية</button> <!--[span_49](start_span)[span_49](end_span) -->
+            <button class="back-btn" onclick="backToHome()">العودة للرئيسية</button>
         </div>
     </div>
 
-    <!-- شاشة المتجر (جديدة كلياً للإصدار 4.0) -->
+    <!-- شاشة المتجر (تضم 100 كرة + خيار الصورة الشخصية) -->
     <div id="shopScreen" class="screen hidden">
         <div class="shop-container">
             <header class="shop-header">
                 <h2>متجر Samball 🛒</h2>
-                <div class="coins-display">النقاط المجمعة: <span id="totalCoins">0</span> 🪙</div>
+                <div class="coins-display">الرصيد الحالي: <span id="totalCoins">0</span> 🪙</div>
             </header>
             
-            <div class="shop-items-grid">
-                <div class="shop-item" id="item-default">
-                    <div class="item-preview default-ball"></div>
-                    <h3>الكرة الكلاسيكية</h3>
-                    <p>مملوكة مسبقاً</p>
-                    <button class="shop-btn equipped" onclick="equipItem('default')">مستخدم حالياً</button>
+            <!-- قسم رفع الصورة الشخصية -->
+            <div class="custom-avatar-section">
+                <h3>🖼️ استخدم صورتك الشخصية ككرة!</h3>
+                <input type="file" id="userPhotoInput" accept="image/*" style="display: none;" onchange="handleCustomPhoto(event)">
+                <div class="avatar-controls">
+                    <button class="upload-btn" onclick="document.getElementById('userPhotoInput').click()">اختر صورة من جهازك</button>
+                    <div id="customPreview" class="item-preview custom-ball hidden"></div>
+                    <button id="equipCustomBtn" class="shop-btn hidden" onclick="equipCustomBall()">تجهيز كرتك الخاصة</button>
                 </div>
-                <div class="shop-item" id="item-fire">
-                    <div class="item-preview fire-ball">🔥</div>
-                    <h3>الكرة النارية</h3>
-                    <p>150 🪙</p>
-                    <button class="shop-btn" onclick="buyItem('fire', 150)">شراء</button>
-                </div>
-                <div class="shop-item" id="item-neon">
-                    <div class="item-preview neon-ball">⚡</div>
-                    <h3>كرة النيون الخارقة</h3>
-                    <p>300 🪙</p>
-                    <button class="shop-btn" onclick="buyItem('neon', 300)">شراء</button>
-                </div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- شبكة الكور الـ 100 -->
+            <div class="shop-items-grid" id="shopGrid">
+                <!-- يتم توليد 100 كرة عبر Script -->
             </div>
 
             <button class="back-btn" onclick="backToHome()">⬅ العودة للرئيسية</button>
         </div>
     </div>
 
-    <!-- شاشة الاحتفال الوهمية بمقلب الـ 100$ (جديدة كلياً) -->
-    <div id="celebrationScreen" class="screen hidden">
-        <div class="celebration-container">
-            <div class="fireworks-bg"></div>
-            <h1 class="jackpot-title">🎉 مستحيل! لقد دمرت اللعبة! 🎉</h1>
-            <h2 class="prize-amount">الجائزة: 100$ 💵</h2>
-            <div class="prank-message">
-                <p>طبعاً دي كلها مؤثرات بصرية ومفيش فلوس بجد 😂!</p>
-                <p>بس عاش جداً، أنت حرفياً أسطورة لأن المستوى ده مستحيل برمجياً!</p>
-            </div>
-            <button class="prank-btn" onclick="backToHome()">استلام الجائزة (كذب) 🤣</button>
-        </div>
-    </div>
-
-    <!-- شاشة اللعبة الفعلية[span_50](start_span)[span_50](end_span) -->
-    <div id="gameScreen" class="screen hidden"> <!--[span_51](start_span)[span_51](end_span) -->
-        <div class="game-wrapper"> <!--[span_52](start_span)[span_52](end_span) -->
-            <header class="game-header"> <!--[span_53](start_span)[span_53](end_span) -->
-                <div class="logo-area"> <!--[span_54](start_span)[span_54](end_span) -->
-                    <img src="logo.png" alt="شعار اللعبة" class="game-logo" onclick="backToMenu()"> <!--[span_55](start_span)[span_55](end_span) -->
-                    <h1 id="currentModeTitle">Samball</h1> <!--[span_56](start_span)[span_56](end_span) -->
+    <!-- شاشة اللعبة الفعلية -->
+    <div id="gameScreen" class="screen hidden">
+        <div class="game-wrapper">
+            <header class="game-header">
+                <div class="logo-area">
+                    <img src="logo.png" alt="شعار اللعبة" class="game-logo" onclick="backToMenu()">
+                    <h1 id="currentModeTitle">Samball</h1>
                 </div>
-                <div class="stats-panel"> <!--[span_57](start_span)[span_57](end_span) -->
-                    <div class="stat-box">النقاط: <span id="score">0</span></div> <!--[span_58](start_span)[span_58](end_span) -->
-                    <div class="stat-box">الأرواح: <span id="lives">3</span></div> <!--[span_59](start_span)[span_59](end_span) -->
-                    <!-- محفظة النقاط (الكوينز) الجديدة داخل اللعبة -->
+                <div class="stats-panel">
+                    <div class="stat-box">النقاط: <span id="score">0</span></div>
+                    <div class="stat-box">الأرواح: <span id="lives">3</span></div>
                     <div class="stat-box coins-box">الرصيد: <span id="gameCoins">0</span> 🪙</div>
                 </div>
             </header>
 
-            <main class="canvas-container"> <!--[span_60](start_span)[span_60](end_span) -->
-                <canvas id="gameCanvas" width="600" height="400"></canvas> <!--[span_61](start_span)[span_61](end_span) -->
-                <div id="messageOverlay" class="overlay hidden"> <!--[span_62](start_span)[span_62](end_span) -->
-                    <h2 id="overlayTitle">جاهز للبدء؟</h2> <!--[span_63](start_span)[span_63](end_span) -->
-                    <p id="overlayText">استخدم الماوس أو الأسهم أو اللمس للتحكم</p> <!--[span_64](start_span)[span_64](end_span) -->
-                    <div class="overlay-buttons"> <!--[span_65](start_span)[span_65](end_span) -->
-                        <button id="startBtn">ابدأ التحدي</button> <!--[span_66](start_span)[span_66](end_span) -->
-                        <button id="menuBtn" onclick="backToMenu()">القائمة الرئيسية</button> <!--[span_67](start_span)[span_67](end_span) -->
+            <main class="canvas-container">
+                <canvas id="gameCanvas" width="600" height="400"></canvas>
+                <div id="messageOverlay" class="overlay hidden">
+                    <h2 id="overlayTitle">جاهز للبدء؟</h2>
+                    <p id="overlayText">استخدم الماوس أو الأسهم أو اللمس للتحكم</p>
+                    <div class="overlay-buttons">
+                        <button id="startBtn">ابدأ التحدي</button>
+                        <button id="menuBtn" onclick="backToMenu()">القائمة الرئيسية</button>
                     </div>
                 </div>
             </main>
 
-            <footer class="game-footer"> <!--[span_68](start_span)[span_68](end_span) -->
-                <button class="text-btn" onclick="backToMenu()">⬅ العودة لاختيار المستويات</button> <!--[span_69](start_span)[span_69](end_span) -->
+            <footer class="game-footer">
+                <button class="text-btn" onclick="backToMenu()">⬅ العودة لاختيار المستويات</button>
             </footer>
         </div>
     </div>
 
-    <script src="script.js"></script> <!--[span_70](start_span)[span_70](end_span) -->
-    <!-- شاشة التحديث الإجباري الجديدة -->
-    <div id="updateOverlay" class="screen hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 13, 26, 0.95); z-index: 9999; display: flex; justify-content: center; align-items: center;">
-        <div class="menu-container" style="text-align: center; max-width: 400px; padding: 30px;">
-            <h2 style="color: #ffd700; margin-bottom: 15px;">🚨 تحديث جديد متاح!</h2>
-            <p style="color: #a4b0be; margin-bottom: 20px;">نسختك الحالية قديمة. يرجى تحميل النسخة الأحدث للاستمرار في اللعب والاستمتاع بالمميزات الجديدة.</p>
-            <a id="downloadUpdateBtn" href="#" target="_blank" class="diff-btn easy" style="justify-content: center; text-decoration: none; font-weight: 900; margin-bottom: 10px;">تنزيل التحديث الآن 🚀</a>
-        </div>
-    </div>
+    <script src="script.js"></script>
 </body>
 </html>
