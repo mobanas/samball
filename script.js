@@ -1,33 +1,5 @@
 (function () {
     'use strict';
-        // --- 🔄 نظام التحديث الإجباري الذكي ---
-    async function checkAppUpdate() {
-        try {
-            const currentAppVersion = "1.0"; 
-            const response = await fetch('version.json?t=' + new Date().getTime());
-            const data = await response.json();
-
-            if (data.version && data.version > currentAppVersion) {
-                if (!window.navigator.standalone && !window.matchMedia('(display-mode: standalone)').matches) {
-                    // اختياري للموقع
-                }
-                
-                const updateOverlay = document.getElementById("updateOverlay");
-                if (updateOverlay) {
-                    updateOverlay.classList.remove("hidden");
-                }
-                
-                const downloadBtn = document.getElementById("downloadUpdateBtn");
-                if (downloadBtn) {
-                    downloadBtn.href = "https://your-website.com/download-page.html"; 
-                }
-            }
-        } catch (error) {
-            console.log("فشل التحقق من التحديثات:", error);
-        }
-    }
-
-    checkAppUpdate();
 
     // --- 🔒 طبقة الحماية القصوى ضد الـ Console والـ DevTools ---
     document.addEventListener('contextmenu', function (e) {
@@ -129,7 +101,7 @@
         if (levelMenuScreen) levelMenuScreen.classList.add("hidden");
         if (shopScreen) shopScreen.classList.add("hidden");
         if (gameScreen) gameScreen.classList.add("hidden");
-        if (celebrationScreen) celebrationScreen.classList.add("hidden"); // تأكيد إخفاء شاشة الاحتفال
+        if (celebrationScreen) celebrationScreen.classList.add("hidden");
         if (homeScreen) homeScreen.classList.remove("hidden");
         
         if (overlay) overlay.classList.add("hidden");
@@ -278,15 +250,21 @@
     });
 
     function getCanvasTouchPos(e) {
-        if (!canvas) return 0;
+        if (!canvas) return NaN;
         let rect = canvas.getBoundingClientRect();
-        let clientX = e.clientX || (e.touches && e.touches[0].clientX);
+        let clientX = e.clientX;
+        if (e.touches && e.touches.length > 0) {
+            clientX = e.touches[0].clientX;
+        } else if (e.changedTouches && e.changedTouches.length > 0) {
+            clientX = e.changedTouches[0].clientX;
+        }
+        if (clientX === undefined) return NaN;
         let scaleX = canvas.width / rect.width;
         return (clientX - rect.left) * scaleX;
     }
 
     document.addEventListener("mousemove", (e) => {
-        if (!canvas) return;
+        if (!canvas || !gameRunning) return;
         let relativeX = getCanvasTouchPos(e);
         if (!isNaN(relativeX)) {
             let targetPaddleX = relativeX - paddleWidth / 2;
@@ -302,6 +280,7 @@
 
     if (canvas) {
         canvas.addEventListener("touchmove", (e) => {
+            if (!gameRunning) return;
             let touchX = getCanvasTouchPos(e);
             if (!isNaN(touchX)) {
                 let targetPaddleX = touchX - paddleWidth / 2;
@@ -462,7 +441,11 @@
     function drawPaddle() {
         if (!ctx || !canvas) return;
         ctx.beginPath();
-        ctx.roundRect(paddleX, canvas.height - paddleHeight - 8, paddleWidth, paddleHeight, 6);
+        if (ctx.roundRect) {
+            ctx.roundRect(paddleX, canvas.height - paddleHeight - 8, paddleWidth, paddleHeight, 6);
+        } else {
+            ctx.rect(paddleX, canvas.height - paddleHeight - 8, paddleWidth, paddleHeight);
+        }
         ctx.fillStyle = "#2ed573";
         ctx.shadowBlur = 10;
         ctx.shadowColor = "#2ed573";
@@ -483,7 +466,11 @@
                     bricks[c][r].x = brickX;
                     bricks[c][r].y = brickY;
                     ctx.beginPath();
-                    ctx.roundRect(brickX, brickY, brickWidth, brickHeight, 4);
+                    if (ctx.roundRect) {
+                        ctx.roundRect(brickX, brickY, brickWidth, brickHeight, 4);
+                    } else {
+                        ctx.rect(brickX, brickY, brickWidth, brickHeight);
+                    }
                     ctx.fillStyle = brickColors[r % brickColors.length];
                     ctx.fill();
                     ctx.strokeStyle = "rgba(255,255,255,0.2)";

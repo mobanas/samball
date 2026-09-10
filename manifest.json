@@ -1,0 +1,18 @@
+{
+      "name": "Samball",
+        "short_name": "Samball",
+          "start_url": "ind
+          ex.html",
+            "display": "standalone",
+              "background_color": "#0d0d1a",
+                "theme_color": "#ff4757",
+                  "icons": [
+                      {
+                            "src": "logo.png",
+                                  "sizes": "512x512",
+                                        "type": "image/png"
+                                            }
+                                              ]
+                                              }
+                                              cnn
+}
