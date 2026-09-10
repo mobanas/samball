@@ -1,4 +1,1 @@
-# 🎮 لعبة تكسير الطوب الملحمية (Epic Brick Breaker)
-
-
-جاري تحديث!! 
+Welcome You are in the game samball An easy and fun game Very light Ball and brick game The game samball is open source and easy to modify. Thank you for your feedback on our strong communication in the Samball game. Please feel free to contact us on Telegram. The username is (tawaslen)
