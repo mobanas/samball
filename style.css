@@ -306,6 +306,8 @@ body {
     border-radius: 12px;
     overflow: hidden;
     border: 2px solid rgba(255, 255, 255, 0.1);
+    /* مساحة أمان سفلية واسعة تفصل المضرب عن زر الرجوع */
+    margin-bottom: 25px;
 }
 
 canvas {
@@ -316,6 +318,11 @@ canvas {
     height: auto !important;
     max-width: 600px;
     touch-action: none;
+}
+
+.game-footer {
+    margin-top: 20px;
+    padding-top: 5px;
 }
 
 .overlay {
@@ -341,3 +348,4 @@ canvas {
 }
 #startBtn { background: linear-gradient(135deg, #2ed573, #26af5f); }
 #menuBtn { background: linear-gradient(135deg, #ff4757, #c50f1f); }
+
