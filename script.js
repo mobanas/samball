@@ -39,7 +39,6 @@
     let ownedBalls = JSON.parse(localStorage.getItem('samball_owned_balls')) || ['ball_0'];
     let customImageBase64 = localStorage.getItem('samball_custom_img') || null;
 
-    // التحقق من نظام الـ "أول يومين للمستخدم" لكرة الصورة الشخصية
     let installTime = localStorage.getItem('samball_install_time');
     if (!installTime) {
         installTime = Date.now();
@@ -47,9 +46,8 @@
     }
     const twoDaysInMillis = 2 * 24 * 60 * 60 * 1000;
     const isFirstTwoDays = (Date.now() - parseInt(installTime)) < twoDaysInMillis;
-    const customBallPrice = isFirstTwoDays ? 0 : 2500; // مجانية أول يومين، ثم تصبح الأغلى (2500)
+    const customBallPrice = isFirstTwoDays ? 0 : 2500;
 
-    // قائمة الكور المحددة (الأبطال الخارقين والكلاسيكية)
     const ballsDatabase = [
         { id: 'ball_0', name: "الكرة الكلاسيكية", price: 0, color: "#ff4757" },
         { id: 'ball_1', name: "سبايدرمان 🕷️", price: 100, color: "#e74c3c" },
@@ -63,8 +61,9 @@
         { id: 'ball_9', name: "فلاش ⚡", price: 600, color: "#d35400" }
     ];
 
+    // تم تخفيض سرعة المستوى الأول هنا لتكون بطيئة ومناسبة جداً للمبتدئين
     const speeds = {
-        1: { dx: 3.5, dy: -4.5 },
+        1: { dx: 2.0, dy: -2.5 },
         2: { dx: 4.5, dy: -6.0 },
         3: { dx: 6.0, dy: -8.0 },
         4: { dx: 7.5, dy: -10.5 },
@@ -517,6 +516,7 @@
 
     window.openGameMenu = openGameMenu;
     window.backToHome = backToHome;
+    window.openShopShop = openShopMenu;
     window.openShopMenu = openShopMenu;
     window.backToMenu = backToMenu;
 
