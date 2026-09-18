@@ -1,7 +1,6 @@
 (function () {
     'use strict';
 
-    // حماية التفاعل للحدث
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('keydown', e => {
         if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) || (e.ctrlKey && e.key === 'U')) {
@@ -40,16 +39,29 @@
     let ownedBalls = JSON.parse(localStorage.getItem('samball_owned_balls')) || ['ball_0'];
     let customImageBase64 = localStorage.getItem('samball_custom_img') || null;
 
-    // توليد 100 كرة بخصائص وألوان مختلفة
-    const ballsDatabase = Array.from({ length: 100 }, (_, i) => {
-        const hue = (i * 137.5) % 360; // توليد ألوان متوازنة
-        return {
-            id: `ball_${i}`,
-            name: i === 0 ? "الكرة الكلاسيكية" : `كرة طاقة #${i}`,
-            price: i === 0 ? 0 : i * 50,
-            color: `hsl(${hue}, 80%, 60%)`
-        };
-    });
+    // 20 كرة لشخصيات الأبطال الخارقين
+    const characterBalls = [
+        { id: 'ball_0', name: "الكرة الكلاسيكية", price: 0, color: "#ff4757" },
+        { id: 'ball_1', name: "سبايدرمان 🕷️", price: 100, color: "#e74c3c" },
+        { id: 'ball_2', name: "باتمان 🦇", price: 150, color: "#2f3640" },
+        { id: 'ball_3', name: "آيمن مان ⚡", price: 200, color: "#f1c40f" },
+        { id: 'ball_4', name: "سوبرمان 🦸‍♂️", price: 250, color: "#3498db" },
+        { id: 'ball_5', name: "كابتن أمريكا 🛡️", price: 300, color: "#2980b9" },
+        { id: 'ball_6', name: "ثور 🔨", price: 350, color: "#7f8c8d" },
+        { id: 'ball_7', name: "هولك 🟢", price: 400, color: "#2ecc71" },
+        { id: 'ball_8', name: "بلاك بانثر 🐾", price: 450, color: "#111111" },
+        { id: 'ball_9', name: "ديدبول ⚔️", price: 500, color: "#c0392b" },
+        { id: 'ball_10', name: "فانوس أخضر 🟩", price: 550, color: "#27ae60" },
+        { id: 'ball_11', name: "فلاش ⚡", price: 600, color: "#d35400" },
+        { id: 'ball_12', name: "ووندر وومان ✨", price: 650, color: "#e67e22" },
+        { id: 'ball_13', name: "ثانوس 🟣", price: 700, color: "#8e44ad" },
+        { id: 'ball_14', name: "فينوم 🖤", price: 750, color: "#353b48" },
+        { id: 'ball_15', name: "وولفرين 🔪", price: 800, color: "#f39c12" },
+        { id: 'ball_16', name: "جوكير 🃏", price: 850, color: "#9b59b6" },
+        { id: 'ball_17', name: "سايبرتك 🤖", price: 900, color: "#00d2d3" },
+        { id: 'ball_18', name: "ناروتو 🍥", price: 950, color: "#ff9f43" },
+        { id: 'ball_19', name: "سايان جوكو 🐉", price: 1000, color: "#ff6b6b" }
+    ];
 
     const speeds = {
         1: { dx: 3.5, dy: -4.5 },
@@ -92,14 +104,13 @@
         localStorage.setItem('samball_coins', coins);
     }
 
-    // --- نظام المتجر والـ 100 كرة ---
     function renderShop() {
         updateCoinsDisplay();
         const shopGrid = document.getElementById("shopGrid");
         if (!shopGrid) return;
         shopGrid.innerHTML = "";
 
-        ballsDatabase.forEach(ball => {
+        characterBalls.forEach(ball => {
             const isOwned = ownedBalls.includes(ball.id);
             const isEquipped = equippedBall === ball.id;
 
@@ -125,21 +136,30 @@
             shopGrid.appendChild(itemDiv);
         });
 
-        // الصورة الشخصية
-        if (customImageBase64) {
-            const customPreview = document.getElementById("customPreview");
-            const equipCustomBtn = document.getElementById("equipCustomBtn");
-            if (customPreview && equipCustomBtn) {
+        // كرتك الخاصة (الأغلى: 2500 كوينز)
+        const customPreview = document.getElementById("customPreview");
+        const equipCustomBtn = document.getElementById("equipCustomBtn");
+        const customPriceEl = document.getElementById("customPriceEl");
+        
+        if (customPreview && equipCustomBtn) {
+            const isCustomOwned = ownedBalls.includes('custom');
+            const isCustomEquipped = equippedBall === 'custom';
+            const customPrice = 2500;
+
+            if (customImageBase64) {
                 customPreview.style.backgroundImage = `url(${customImageBase64})`;
                 customPreview.classList.remove("hidden");
-                equipCustomBtn.classList.remove("hidden");
-                if (equippedBall === 'custom') {
-                    equipCustomBtn.innerText = "مستخدم حالياً";
-                    equipCustomBtn.className = "shop-btn equipped";
-                } else {
-                    equipCustomBtn.innerText = "تجهيز كرتك الخاصة";
-                    equipCustomBtn.className = "shop-btn";
-                }
+            }
+
+            if (isCustomEquipped) {
+                equipCustomBtn.innerText = "مستخدم حالياً";
+                equipCustomBtn.className = "shop-btn equipped";
+            } else if (isCustomOwned) {
+                equipCustomBtn.innerText = "تجهيز كرتك الخاصة";
+                equipCustomBtn.className = "shop-btn";
+            } else {
+                equipCustomBtn.innerText = `شراء وتجهيز (${customPrice} 🪙)`;
+                equipCustomBtn.className = "shop-btn";
             }
         }
     }
@@ -154,7 +174,7 @@
             renderShop();
             alert("🎉 تم الشراء والتجهيز بنجاح!");
         } else {
-            alert("❌ لا تمتلك كوينز كافية! العب واجمع المزيد من النقاط.");
+            alert("❌ رصيدك لا يكفي! العب واجمع المزيد.");
         }
     }
 
@@ -175,17 +195,38 @@
                 customBallImgObj = new Image();
                 customBallImgObj.src = customImageBase64;
 
-                equipBall('custom');
+                const customPrice = 2500;
+                if (ownedBalls.includes('custom')) {
+                    equipBall('custom');
+                } else {
+                    if (coins >= customPrice) {
+                        coins -= customPrice;
+                        ownedBalls.push('custom');
+                        localStorage.setItem('samball_owned_balls', JSON.stringify(ownedBalls));
+                        equipBall('custom');
+                        alert("🌟 تم شراء وتجهيز كرتك الخاصة بنجاح!");
+                    } else {
+                        alert("❌ رصيدك لا يكفي لشراء الكرة الخاصة (تتطلب 2500 كوينز). تم حفظ صورتك في المتجر.");
+                        renderShop();
+                    }
+                }
             };
             reader.readAsDataURL(file);
         }
     };
 
     window.equipCustomBall = function () {
-        equipBall('custom');
+        if (!customImageBase64) {
+            document.getElementById('userPhotoInput').click();
+            return;
+        }
+        if (ownedBalls.includes('custom')) {
+            equipBall('custom');
+        } else {
+            buyBall('custom', 2500);
+        }
     };
 
-    // --- الشاشات والمستويات ---
     function openGameMenu() {
         if (homeScreen) homeScreen.classList.add("hidden");
         if (levelMenuScreen) levelMenuScreen.classList.remove("hidden");
@@ -204,6 +245,7 @@
         [levelMenuScreen, shopScreen, gameScreen].forEach(s => s && s.classList.add("hidden"));
         if (homeScreen) homeScreen.classList.remove("hidden");
         if (overlay) overlay.classList.add("hidden");
+        hideInternalAd();
     }
 
     function renderLevels() {
@@ -221,7 +263,7 @@
             `;
             btn.onclick = () => {
                 if (isUnlocked) startGame(i);
-                else alert("🔒 هذا المستوى مقفل! يجب الفوز في المستوى السابق أولاً.");
+                else alert("🔒 هذا المستوى مقفل!");
             };
             container.appendChild(btn);
         }
@@ -234,9 +276,60 @@
         if (levelMenuScreen) levelMenuScreen.classList.remove("hidden");
         renderLevels();
         if (overlay) overlay.classList.add("hidden");
+        hideInternalAd();
     }
 
-    // --- أحداث التحكم ---
+    // --- نظام الإعلان الداخلي (يكسب 10 كوينز - مرة كل 10 دقائق) ---
+    function showInternalAd() {
+        let adContainer = document.getElementById("internalAdContainer");
+        if (!adContainer) {
+            adContainer = document.createElement("div");
+            adContainer.id = "internalAdContainer";
+            adContainer.className = "ad-overlay";
+            adContainer.innerHTML = `
+                <div class="ad-box">
+                    <h3>🎁 إعلان مكافأة Samball</h3>
+                    <p>شاهد هذا الإعلان السريع واحصل على 10 كوينز مجاناً!</p>
+                    <div class="ad-banner-sim">إعلان ممول: العب واكسب مع أنس!</div>
+                    <button id="watchAdBtn" class="shop-btn" style="background:#2ed573; margin-bottom:10px; padding:10px;">احصل على 10 كوينز</button>
+                    <button id="closeInternalAdBtn" class="shop-btn" style="background:#ff4757; padding:10px;">تخطي</button>
+                </div>
+            `;
+            document.body.appendChild(adContainer);
+
+            document.getElementById("closeInternalAdBtn").onclick = () => {
+                hideInternalAd();
+            };
+
+            document.getElementById("watchAdBtn").onclick = () => {
+                const lastAdTime = localStorage.getItem('samball_last_ad_time') ? parseInt(localStorage.getItem('samball_last_ad_time')) : 0;
+                const now = Date.now();
+                const tenMinutesInMs = 10 * 60 * 1000;
+
+                if (now - lastAdTime < tenMinutesInMs) {
+                    const remainingMins = Math.ceil((tenMinutesInMs - (now - lastAdTime)) / 60000);
+                    alert(`⏳ عذراً يا أنس! يمكنك مشاهدة الإعلان مرة أخرى بعد ${remainingMins} دقائق.`);
+                    hideInternalAd();
+                    return;
+                }
+
+                coins += 10;
+                updateCoinsDisplay();
+                localStorage.setItem('samball_last_ad_time', now);
+                alert("🎉 مبروك! حصلت على 10 كوينز بنجاح!");
+                hideInternalAd();
+            };
+        }
+        adContainer.style.display = "flex";
+    }
+
+    function hideInternalAd() {
+        const adContainer = document.getElementById("internalAdContainer");
+        if (adContainer) {
+            adContainer.style.display = "none";
+        }
+    }
+
     document.addEventListener("keydown", e => {
         if (e.key === "Right" || e.key === "ArrowRight") rightPressed = true;
         else if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = true;
@@ -269,7 +362,6 @@
         }, { passive: false });
     }
 
-    // --- منطق اللعبة ---
     const brickRowCount = 5;
     const brickColumnCount = 7;
     const brickWidth = 72;
@@ -294,6 +386,7 @@
         if (levelMenuScreen) levelMenuScreen.classList.add("hidden");
         if (gameScreen) gameScreen.classList.remove("hidden");
         if (currentModeTitle) currentModeTitle.innerText = modeNames[diff];
+        hideInternalAd();
 
         score = 0;
         lives = 3;
@@ -335,7 +428,7 @@
                                 unlockedLevel = currentDifficulty + 1;
                                 localStorage.setItem('samball_unlocked', unlockedLevel);
                             }
-                            showOverlay("🎉 أحسنت! انتصرت في هذا المستوى!", "المستوى التالي / إعاده");
+                            showOverlay("🎉 انتصرت في هذا المستوى!", "المستوى التالي / إعاده");
                         }
                     }
                 }
@@ -345,17 +438,6 @@
 
     function checkWin() {
         return bricks.every(col => col.every(b => b.status === 0));
-    }
-
-    // العقوبة الواقعية: تصفير الكوينز والكور المشتراة عند الخسارة
-    function resetPlayerAccountOnLoss() {
-        coins = 0;
-        equippedBall = 'ball_0';
-        ownedBalls = ['ball_0'];
-        localStorage.setItem('samball_coins', 0);
-        localStorage.setItem('samball_ball', 'ball_0');
-        localStorage.setItem('samball_owned_balls', JSON.stringify(['ball_0']));
-        updateCoinsDisplay();
     }
 
     function drawBall() {
@@ -368,7 +450,7 @@
             ctx.clip();
             ctx.drawImage(customBallImgObj, x - ballRadius, y - ballRadius, ballRadius * 2, ballRadius * 2);
         } else {
-            const currentBallObj = ballsDatabase.find(b => b.id === equippedBall) || ballsDatabase[0];
+            const currentBallObj = characterBalls.find(b => b.id === equippedBall) || characterBalls[0];
             ctx.fillStyle = currentBallObj.color;
             ctx.shadowBlur = 10;
             ctx.shadowColor = currentBallObj.color;
@@ -433,8 +515,8 @@
                 if (livesEl) livesEl.innerText = lives;
                 if (lives <= 0) {
                     gameRunning = false;
-                    resetPlayerAccountOnLoss(); // تصفير الكوينز والكور المشتراة
-                    showOverlay("💥 خصرت اللعبة! فقدت كل رصيدك وكورك المشتراة!", "حاول مجدداً من جديد");
+                    showOverlay("💥 خسرت اللعبة!", "حاول مجدداً");
+                    showInternalAd(); // إظهار الإعلان عند الخسارة
                     return;
                 } else {
                     resetBallAndPaddle();
@@ -460,6 +542,7 @@
     if (startBtn) {
         startBtn.addEventListener("click", () => {
             if (overlay) overlay.classList.add("hidden");
+            hideInternalAd();
             score = 0;
             lives = 3;
             if (scoreEl) scoreEl.innerText = score;
