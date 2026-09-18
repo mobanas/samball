@@ -94,7 +94,8 @@
         <div class="game-wrapper">
             <header class="game-header">
                 <div class="logo-area">
-                    <img src="logo.png" alt="شعار اللعبة" class="game-logo" onclick="backToMenu()">
+                    <!-- زر الخروج المدور في الأعلى -->
+                    <button class="round-exit-btn" onclick="backToMenu()" title="العودة لاختيار المستويات">⬅</button>
                     <h1 id="currentModeTitle">Samball</h1>
                 </div>
                 <div class="stats-panel">
@@ -115,13 +116,9 @@
                     </div>
                 </div>
             </main>
-
-            <footer class="game-footer">
-                <button class="text-btn" onclick="backToMenu()">⬅ العودة لاختيار المستويات</button>
-            </footer>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=2.1"></script>
 </body>
 </html>
