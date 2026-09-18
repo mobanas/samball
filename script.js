@@ -49,7 +49,7 @@
     const isFirstTwoDays = (Date.now() - parseInt(installTime)) < twoDaysInMillis;
     const customBallPrice = isFirstTwoDays ? 0 : 2500; // مجانية أول يومين، ثم تصبح الأغلى (2500)
 
-    // قائمة الكور المحددة (الأبطال الخارقين والكلاسيكية) بدل الـ 100 عشوائي
+    // قائمة الكور المحددة (الأبطال الخارقين والكلاسيكية)
     const ballsDatabase = [
         { id: 'ball_0', name: "الكرة الكلاسيكية", price: 0, color: "#ff4757" },
         { id: 'ball_1', name: "سبايدرمان 🕷️", price: 100, color: "#e74c3c" },
@@ -110,7 +110,6 @@
         if (!shopGrid) return;
         shopGrid.innerHTML = "";
 
-        // عرض الكور الأساسية والأبطال
         ballsDatabase.forEach(ball => {
             const isOwned = ownedBalls.includes(ball.id);
             const isEquipped = equippedBall === ball.id;
@@ -137,7 +136,6 @@
             shopGrid.appendChild(itemDiv);
         });
 
-        // تخصيص قسم الكرة الخاصة بالمستخدم وتحديث سعرها حسب أول يومين
         const customPreview = document.getElementById("customPreview");
         const equipCustomBtn = document.getElementById("equipCustomBtn");
         const customSectionTitle = document.getElementById("customSectionTitle");
@@ -502,3 +500,28 @@
         if (startBtn) startBtn.innerText = btnText;
         if (overlay) overlay.classList.remove("hidden");
     }
+
+    if (startBtn) {
+        startBtn.addEventListener("click", () => {
+            if (overlay) overlay.classList.add("hidden");
+            score = 0;
+            lives = 3;
+            if (scoreEl) scoreEl.innerText = score;
+            if (livesEl) livesEl.innerText = lives;
+            initBricks();
+            resetBallAndPaddle();
+            gameRunning = true;
+            draw();
+        });
+    }
+
+    window.openGameMenu = openGameMenu;
+    window.backToHome = backToHome;
+    window.openShopMenu = openShopMenu;
+    window.backToMenu = backToMenu;
+
+    document.addEventListener("DOMContentLoaded", () => {
+        updateCoinsDisplay();
+    });
+})();
+
