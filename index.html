@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Samball</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="logo.png">
@@ -10,40 +10,26 @@
 </head>
 <body>
 
-    <!-- إشعار التوصيل -->
-    <div id="toastNotification" class="toast-notification hidden"></div>
-
     <!-- شاشة الصفحة الرئيسية -->
     <div id="homeScreen" class="screen">
         <div class="home-container">
             <header class="home-header">
-                <div class="logo-wrapper">
-                    <img src="logo.png" alt="شعار اللعبة" class="main-logo">
-                </div>
+                <img src="logo.png" alt="شعار اللعبة" class="main-logo">
                 <h1>Samball</h1>
                 <p>تحدى مهاراتك واجمع الكوينز لشراء الكور والأبطال!</p>
             </header>
 
             <div class="apps-grid">
-                <div class="app-card" tabindex="0" onclick="openGameMenu()">
+                <div class="app-card" onclick="openGameMenu()">
                     <div class="app-icon-wrapper">
                         <img src="logo.png" alt="بدء اللعب" class="app-icon">
                     </div>
-                    <h3>بدء التحدي (فردي)</h3>
+                    <h3>بدء التحدي</h3>
                     <p>مستويات متدرجة متصاعدة</p>
                     <span class="app-badge">تشغيل 🎮</span>
                 </div>
 
-                <div class="app-card multiplayer-card" tabindex="0" onclick="openMultiplayerSetup()">
-                    <div class="app-icon-wrapper">
-                        <span class="app-icon">👥</span>
-                    </div>
-                    <h3>تحدي شاشة منقسمة</h3>
-                    <p>لعب جماعي (من 2 إلى 4 لاعبين)</p>
-                    <span class="app-badge multi-badge">تحدي ⚔️</span>
-                </div>
-
-                <div class="app-card shop-card" tabindex="0" onclick="openShopMenu()">
+                <div class="app-card shop-card" onclick="openShopMenu()">
                     <div class="app-icon-wrapper">
                         <span class="app-icon shop-icon">🛒</span>
                     </div>
@@ -59,33 +45,16 @@
         </div>
     </div>
 
-    <!-- شاشة إعداد اللعب الجماعي -->
-    <div id="multiSetupScreen" class="screen hidden">
-        <div class="menu-container">
-            <h2>إعداد التحدي الجماعي 👥</h2>
-            <p>اختر عدد اللاعبين وأجهزة التحكم المتصلة:</p>
-            
-            <div class="player-count-selector">
-                <button class="count-btn active" id="btn2Players" onclick="setPlayerCount(2)">2 لاعبين</button>
-                <button class="count-btn" id="btn3Players" onclick="setPlayerCount(3)">3 لاعبين</button>
-                <button class="count-btn" id="btn4Players" onclick="setPlayerCount(4)">4 لاعبين</button>
-            </div>
-
-            <div class="players-setup-grid" id="playersSetupGrid"></div>
-
-            <div class="setup-actions">
-                <button class="start-multi-btn" onclick="startMultiplayerGame()">🚀 ابدأ التحدي الآن</button>
-                <button class="back-btn" onclick="backToHome()">العودة للرئيسية</button>
-            </div>
-        </div>
-    </div>
-
     <!-- شاشة اختيار مستويات الصعوبة -->
     <div id="levelMenuScreen" class="screen hidden">
         <div class="menu-container">
             <h2>اختر المستوى</h2>
             <p>يجب عليك الفوز بكل مستوى لفتح المستوى الذي يليه:</p>
-            <div class="difficulty-buttons"></div>
+            
+            <div class="difficulty-buttons">
+                <!-- يتم توليد المستويات عبر JavaScript بشكل ديناميكي مرتب -->
+            </div>
+
             <button class="back-btn" onclick="backToHome()">العودة للرئيسية</button>
         </div>
     </div>
@@ -98,6 +67,7 @@
                 <div class="coins-display">الرصيد الحالي: <span id="totalCoins">0</span> 🪙</div>
             </header>
             
+            <!-- قسم رفع الصورة الشخصية -->
             <div class="custom-avatar-section">
                 <h3 id="customSectionTitle">🖼️ استخدم صورتك الشخصية ككرة!</h3>
                 <input type="file" id="userPhotoInput" accept="image/*" style="display: none;" onchange="handleCustomPhoto(event)">
@@ -109,7 +79,12 @@
             </div>
 
             <hr class="divider">
-            <div class="shop-items-grid" id="shopGrid"></div>
+
+            <!-- شبكة الكور والأبطال -->
+            <div class="shop-items-grid" id="shopGrid">
+                <!-- يتم توليد الكور عبر Script -->
+            </div>
+
             <button class="back-btn" onclick="backToHome()">⬅ العودة للرئيسية</button>
         </div>
     </div>
@@ -119,33 +94,31 @@
         <div class="game-wrapper">
             <header class="game-header">
                 <div class="logo-area">
-                    <button class="round-exit-btn" onclick="backToHome()" title="العودة للرئيسية">⬅</button>
+                    <!-- زر الخروج المدور في الأعلى -->
+                    <button class="round-exit-btn" onclick="backToMenu()" title="العودة لاختيار المستويات">⬅</button>
                     <h1 id="currentModeTitle">Samball</h1>
                 </div>
-                <div id="singleStats" class="stats-panel">
+                <div class="stats-panel">
                     <div class="stat-box">النقاط: <span id="score">0</span></div>
                     <div class="stat-box">الأرواح: <span id="lives">3</span></div>
                     <div class="stat-box coins-box">الرصيد: <span id="gameCoins">0</span> 🪙</div>
                 </div>
             </header>
 
-            <main class="canvas-container" id="canvasContainer">
-                <div id="multiCanvasWrapper" class="multi-canvas-wrapper">
-                    <canvas id="gameCanvas" width="600" height="400"></canvas>
-                </div>
-
+            <main class="canvas-container">
+                <canvas id="gameCanvas" width="600" height="400"></canvas>
                 <div id="messageOverlay" class="overlay hidden">
                     <h2 id="overlayTitle">جاهز للبدء؟</h2>
-                    <p id="overlayText">استخدم الماوس أو الأسهم أو اللمس أو ذراع التحكم</p>
+                    <p id="overlayText">استخدم الماوس أو الأسهم أو اللمس للتحكم</p>
                     <div class="overlay-buttons">
                         <button id="startBtn">ابدأ التحدي</button>
-                        <button id="menuBtn" onclick="backToHome()">القائمة الرئيسية</button>
+                        <button id="menuBtn" onclick="backToMenu()">القائمة الرئيسية</button>
                     </div>
                 </div>
             </main>
         </div>
     </div>
 
-    <script src="script.js?v=4.0"></script>
+    <script src="script.js?v=2.2"></script>
 </body>
 </html>
