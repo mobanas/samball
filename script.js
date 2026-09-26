@@ -3,7 +3,6 @@
 
     document.addEventListener('contextmenu', e => e.preventDefault());
 
-    // الشاشات
     const homeScreen = document.getElementById("homeScreen");
     const levelMenuScreen = document.getElementById("levelMenuScreen");
     const multiSetupScreen = document.getElementById("multiSetupScreen");
@@ -17,12 +16,6 @@
     const overlayText = document.getElementById("overlayText");
     const startBtn = document.getElementById("startBtn");
 
-    let coins = localStorage.getItem('samball_coins') ? parseInt(localStorage.getItem('samball_coins')) : 0;
-    let unlockedLevel = localStorage.getItem('samball_unlocked') ? parseInt(localStorage.getItem('samball_unlocked')) : 1;
-    let equippedBall = localStorage.getItem('samball_ball') || 'ball_0';
-    let ownedBalls = JSON.parse(localStorage.getItem('samball_owned_balls')) || ['ball_0'];
-    let customImageBase64 = localStorage.getItem('samball_custom_img') || null;
-
     let isMultiplayer = false;
     let playerCount = 2;
     let gameRunning = false;
@@ -30,34 +23,17 @@
     let playerConfigs = [];
     let playersState = [];
 
-    const ballsDatabase = [
-        { id: 'ball_0', name: "الكرة الكلاسيكية", price: 0, color: "#ff4757" },
-        { id: 'ball_1', name: "سبايدرمان 🕷️", price: 100, color: "#e74c3c" },
-        { id: 'ball_2', name: "باتمان 🦇", price: 150, color: "#2f3640" },
-        { id: 'ball_3', name: "آيمن مان ⚡", price: 200, color: "#f1c40f" },
-        { id: 'ball_4', name: "سوبرمان 🦸‍♂️", price: 250, color: "#3498db" },
-        { id: 'ball_5', name: "كابتن أمريكا 🛡️", price: 300, color: "#2980b9" },
-        { id: 'ball_6', name: "ثور 🔨", price: 350, color: "#7f8c8d" },
-        { id: 'ball_7', name: "هولك 🟢", price: 400, color: "#2ecc71" },
-        { id: 'ball_8', name: "ديدبول ⚔️", price: 500, color: "#c0392b" },
-        { id: 'ball_9', name: "فلاش ⚡", price: 600, color: "#d35400" }
-    ];
-
     const playerColors = ["#ff4757", "#1e90ff", "#2ed573", "#ffa502"];
 
-    // إشعار فوري (Toast) لمدة ثانيتين
     function showToast(msg) {
         if (!toastNotification) return;
         toastNotification.innerText = msg;
         toastNotification.classList.remove("hidden");
-        setTimeout(() => {
-            toastNotification.classList.add("hidden");
-        }, 2000);
+        setTimeout(() => { toastNotification.classList.add("hidden"); }, 2000);
     }
 
-    // اكتشاف أجهزة التحكم (Gamepad)
     window.addEventListener("gamepadconnected", (e) => {
-        showToast(`🎮 تم توصيل ذراع التحكم: ${e.gamepad.id.substring(0, 15)}...`);
+        showToast(`🎮 تم توصيل الذراع: ${e.gamepad.id.substring(0, 15)}...`);
         renderMultiSetup();
     });
 
@@ -66,7 +42,6 @@
         renderMultiSetup();
     });
 
-    // إعدادات اللاعبين المتاحة
     window.setPlayerCount = function (count) {
         playerCount = count;
         document.querySelectorAll('.count-btn').forEach(btn => btn.classList.remove('active'));
@@ -76,11 +51,11 @@
         renderMultiSetup();
     };
 
-    function openMultiplayerSetup() {
+    window.openMultiplayerSetup = function () {
         if (homeScreen) homeScreen.classList.add("hidden");
         if (multiSetupScreen) multiSetupScreen.classList.remove("hidden");
         renderMultiSetup();
-    }
+    };
 
     function renderMultiSetup() {
         const grid = document.getElementById("playersSetupGrid");
@@ -101,7 +76,6 @@
             let optionsHtml = `
                 <option value="keys_ad" ${defaultCtrl === 'keys_ad' ? 'selected' : ''}>كيبورد (A / D)</option>
                 <option value="keys_arrows" ${defaultCtrl === 'keys_arrows' ? 'selected' : ''}>كيبورد (الأسهم)</option>
-                <option value="mouse" ${i === 0 ? '' : ''}>الماوس / اللمس</option>
             `;
 
             gamepads.forEach((gp, idx) => {
@@ -111,16 +85,13 @@
             card.innerHTML = `
                 <h3 style="color: ${playerColors[i]}">اللاعب ${i + 1} 🎮</h3>
                 <label style="font-size:12px;">جهاز التحكم:</label>
-                <select class="setup-control-select" id="ctrlP${i}">
-                    ${optionsHtml}
-                </select>
+                <select class="setup-control-select" id="ctrlP${i}">${optionsHtml}</select>
             `;
-
             grid.appendChild(card);
         }
     }
 
-    function startMultiplayerGame() {
+    window.startMultiplayerGame = function () {
         playerConfigs = [];
         for (let i = 0; i < playerCount; i++) {
             const select = document.getElementById(`ctrlP${i}`);
@@ -139,7 +110,7 @@
 
         initMultiplayerCanvases();
         showOverlay("جاهزون للتحدي؟", "ابدأ اللعب الآن");
-    }
+    };
 
     function initMultiplayerCanvases() {
         multiCanvasWrapper.innerHTML = "";
@@ -171,23 +142,15 @@
 
     function createPlayerState(id, canvas) {
         const ctx = canvas.getContext("2d");
-        const paddleWidth = 70;
-        const paddleHeight = 10;
+        const paddleWidth = 70, paddleHeight = 10;
         return {
-            id,
-            canvas,
-            ctx,
-            score: 0,
-            lives: 3,
-            x: canvas.width / 2,
-            y: canvas.height - 30,
-            dx: 3 * (Math.random() > 0.5 ? 1 : -1),
-            dy: -4,
-            paddleWidth,
-            paddleHeight,
+            id, canvas, ctx,
+            score: 0, lives: 3,
+            x: canvas.width / 2, y: canvas.height - 30,
+            dx: 3 * (Math.random() > 0.5 ? 1 : -1), dy: -4,
+            paddleWidth, paddleHeight,
             paddleX: (canvas.width - paddleWidth) / 2,
-            leftPressed: false,
-            rightPressed: false,
+            leftPressed: false, rightPressed: false,
             bricks: createBricksForCanvas(),
             isDead: false
         };
@@ -204,26 +167,15 @@
         return bricks;
     }
 
-    // إدارة مدخلات المفاتيح والأزرار
     const keysDown = {};
-    document.addEventListener("keydown", e => {
-        keysDown[e.code] = true;
-        if (e.key === "Enter" || e.key === "Select") {
-            showToast("🔘 تم الضغط بالريموت / المفتاح");
-        }
-    });
-
-    document.addEventListener("keyup", e => {
-        keysDown[e.code] = false;
-    });
+    document.addEventListener("keydown", e => { keysDown[e.code] = true; });
+    document.addEventListener("keyup", e => { keysDown[e.code] = false; });
 
     function updateInputs() {
         const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-
         playersState.forEach((p) => {
             const ctrl = playerConfigs[p.id].control;
-            p.leftPressed = false;
-            p.rightPressed = false;
+            p.leftPressed = false; p.rightPressed = false;
 
             if (ctrl === "keys_ad") {
                 if (keysDown["KeyA"]) p.leftPressed = true;
@@ -244,23 +196,17 @@
 
     function multiGameLoop() {
         if (!gameRunning) return;
-
         updateInputs();
 
-        let activePlayers = 0;
-        let winnerIndex = -1;
+        let activePlayers = 0, winnerIndex = -1;
 
         playersState.forEach((p) => {
             if (p.isDead) return;
+            activePlayers++; winnerIndex = p.id;
 
-            activePlayers++;
-            winnerIndex = p.id;
-
-            const ctx = p.ctx;
-            const canvas = p.canvas;
+            const ctx = p.ctx, canvas = p.canvas;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // رسم الطوب
             const brickWidth = 60, brickHeight = 15, brickPadding = 8, offsetTop = 25, offsetLeft = 30;
             let bricksLeft = 0;
 
@@ -278,32 +224,26 @@
                         ctx.fill();
                         ctx.closePath();
 
-                        // تصادم الكرة بالطوب
                         if (p.x > bx && p.x < bx + brickWidth && p.y > by && p.y < by + brickHeight) {
-                            p.dy = -p.dy;
-                            b.status = 0;
-                            p.score += 10;
+                            p.dy = -p.dy; b.status = 0; p.score += 10;
                             document.getElementById(`tagP${p.id}`).innerText = `لاعب ${p.id + 1} | أرواح: ${p.lives} | نقاط: ${p.score}`;
                         }
                     }
                 }
             }
 
-            // فوز اللاعب بتحطيم كل الطوب
             if (bricksLeft === 0) {
                 gameRunning = false;
-                showOverlay(`🎉 مبروك! اللاعب ${p.id + 1} هو الفائز بإنهاء الطوب أولاً!`, "تحدي جديد");
+                showOverlay(`🎉 مبروك! اللاعب ${p.id + 1} هو الفائز!`, "تحدي جديد");
                 return;
             }
 
-            // رسم الكرة
             ctx.beginPath();
             ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
             ctx.fillStyle = playerColors[p.id];
             ctx.fill();
             ctx.closePath();
 
-            // رسم المضارب
             if (p.leftPressed && p.paddleX > 0) p.paddleX -= 5;
             if (p.rightPressed && p.paddleX < canvas.width - p.paddleWidth) p.paddleX += 5;
 
@@ -313,7 +253,6 @@
             ctx.fill();
             ctx.closePath();
 
-            // حركة الكرة والتصادم
             if (p.x + p.dx > canvas.width - 7 || p.x + p.dx < 7) p.dx = -p.dx;
             if (p.y + p.dy < 7) p.dy = -p.dy;
             else if (p.y + p.dy > canvas.height - 12) {
@@ -322,27 +261,17 @@
                 } else {
                     p.lives--;
                     document.getElementById(`tagP${p.id}`).innerText = `لاعب ${p.id + 1} | أرواح: ${p.lives} | نقاط: ${p.score}`;
-                    if (p.lives <= 0) {
-                        p.isDead = true;
-                    } else {
-                        p.x = canvas.width / 2;
-                        p.y = canvas.height - 30;
-                        p.dy = -4;
-                    }
+                    if (p.lives <= 0) p.isDead = true;
+                    else { p.x = canvas.width / 2; p.y = canvas.height - 30; p.dy = -4; }
                 }
             }
 
-            p.x += p.dx;
-            p.y += p.dy;
+            p.x += p.dx; p.y += p.dy;
         });
 
         if (activePlayers === 1 && playerCount > 1) {
             gameRunning = false;
-            showOverlay(`👑 فاز اللاعب ${winnerIndex + 1} بسبب صموده للنهاية!`, "تحدي جديد");
-            return;
-        } else if (activePlayers === 0) {
-            gameRunning = false;
-            showOverlay("💥 خسر جميع اللاعبين!", "حاولوا مجدداً");
+            showOverlay(`👑 فاز اللاعب ${winnerIndex + 1} للصمود!`, "تحدي جديد");
             return;
         }
 
@@ -351,7 +280,6 @@
 
     function showOverlay(title, btnText) {
         if (overlayTitle) overlayTitle.innerText = title;
-        if (overlayText) overlayText.innerText = "استمتعوا بالتحدي الآن!";
         if (startBtn) startBtn.innerText = btnText;
         if (overlay) overlay.classList.remove("hidden");
     }
@@ -360,19 +288,11 @@
         startBtn.addEventListener("click", () => {
             if (overlay) overlay.classList.add("hidden");
             gameRunning = true;
-            if (isMultiplayer) {
-                animationFrameId = requestAnimationFrame(multiGameLoop);
-            }
+            if (isMultiplayer) animationFrameId = requestAnimationFrame(multiGameLoop);
         });
     }
 
-    window.openGameMenu = () => {
-        showToast("🎮 جاري فتح التحدي الفردي");
-        if (homeScreen) homeScreen.classList.add("hidden");
-        if (levelMenuScreen) levelMenuScreen.classList.remove("hidden");
-    };
-
-    window.openMultiplayerSetup = openMultiplayerSetup;
+    window.openGameMenu = () => { showToast("🎮 فتح التحدي الفردي"); };
     window.openShopMenu = () => {
         if (homeScreen) homeScreen.classList.add("hidden");
         if (shopScreen) shopScreen.classList.remove("hidden");
@@ -387,6 +307,6 @@
     };
 
     document.addEventListener("DOMContentLoaded", () => {
-        showToast("🌟 أهلاً بك في لعبة Samball!");
+        showToast("🌟 أهلاً بك في Samball!");
     });
 })();

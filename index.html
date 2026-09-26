@@ -57,7 +57,7 @@
         </div>
     </div>
 
-    <!-- شاشة إعداد اللعب الجماعي (اختيار عدد اللاعبين وأجهزة التحكم) -->
+    <!-- شاشة إعداد اللعب الجماعي -->
     <div id="multiSetupScreen" class="screen hidden">
         <div class="menu-container">
             <h2>إعداد التحدي الجماعي 👥</h2>
@@ -69,9 +69,7 @@
                 <button class="count-btn" id="btn4Players" onclick="setPlayerCount(4)">4 لاعبين</button>
             </div>
 
-            <div class="players-setup-grid" id="playersSetupGrid">
-                <!-- يتم توليد إعدادات أجهزة التحكم هنا ديناميكياً -->
-            </div>
+            <div class="players-setup-grid" id="playersSetupGrid"></div>
 
             <div class="setup-actions">
                 <button class="start-multi-btn" onclick="startMultiplayerGame()">🚀 ابدأ التحدي الآن</button>
@@ -80,16 +78,12 @@
         </div>
     </div>
 
-    <!-- شاشة اختيار مستويات الصعوبة (فردي) -->
+    <!-- شاشة اختيار مستويات الصعوبة -->
     <div id="levelMenuScreen" class="screen hidden">
         <div class="menu-container">
             <h2>اختر المستوى</h2>
             <p>يجب عليك الفوز بكل مستوى لفتح المستوى الذي يليه:</p>
-            
-            <div class="difficulty-buttons">
-                <!-- يتم توليد المستويات عبر JavaScript بشكل ديناميكي -->
-            </div>
-
+            <div class="difficulty-buttons"></div>
             <button class="back-btn" onclick="backToHome()">العودة للرئيسية</button>
         </div>
     </div>
@@ -102,7 +96,6 @@
                 <div class="coins-display">الرصيد الحالي: <span id="totalCoins">0</span> 🪙</div>
             </header>
             
-            <!-- قسم رفع الصورة الشخصية -->
             <div class="custom-avatar-section">
                 <h3 id="customSectionTitle">🖼️ استخدم صورتك الشخصية ككرة!</h3>
                 <input type="file" id="userPhotoInput" accept="image/*" style="display: none;" onchange="handleCustomPhoto(event)">
@@ -114,17 +107,12 @@
             </div>
 
             <hr class="divider">
-
-            <!-- شبكة الكور والأبطال -->
-            <div class="shop-items-grid" id="shopGrid">
-                <!-- يتم توليد الكور عبر Script -->
-            </div>
-
+            <div class="shop-items-grid" id="shopGrid"></div>
             <button class="back-btn" onclick="backToHome()">⬅ العودة للرئيسية</button>
         </div>
     </div>
 
-    <!-- شاشة اللعبة الفعلية (فردي / جماعي شاشة منقسمة) -->
+    <!-- شاشة اللعبة الفعلية -->
     <div id="gameScreen" class="screen hidden">
         <div class="game-wrapper">
             <header class="game-header">
@@ -140,7 +128,6 @@
             </header>
 
             <main class="canvas-container" id="canvasContainer">
-                <!-- شاشات الكانفاس المتعددة تولد هنا تلقائياً حسَب عدد اللاعبين -->
                 <div id="multiCanvasWrapper" class="multi-canvas-wrapper">
                     <canvas id="gameCanvas" width="600" height="400"></canvas>
                 </div>
