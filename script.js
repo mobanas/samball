@@ -13,7 +13,6 @@
     const multiCanvasWrapper = document.getElementById("multiCanvasWrapper");
     const overlay = document.getElementById("messageOverlay");
     const overlayTitle = document.getElementById("overlayTitle");
-    const overlayText = document.getElementById("overlayText");
     const startBtn = document.getElementById("startBtn");
 
     let isMultiplayer = false;
@@ -136,8 +135,31 @@
             box.appendChild(canv);
             multiCanvasWrapper.appendChild(box);
 
-            playersState.push(createPlayerState(i, canv));
+            const pState = createPlayerState(i, canv);
+            playersState.push(pState);
+
+            // تفعيل حركة المضرب عن طريق اللمس والمؤشر مباشرة
+            bindTouchAndMouseEvents(canv, pState);
         }
+    }
+
+    function bindTouchAndMouseEvents(canvas, pState) {
+        const updatePaddle = (clientX) => {
+            const rect = canvas.getBoundingClientRect();
+            const touchX = clientX - rect.left;
+            const ratio = canvas.width / rect.width;
+            pState.paddleX = (touchX * ratio) - (pState.paddleWidth / 2);
+        };
+
+        canvas.addEventListener("touchmove", (e) => {
+            if (e.touches.length > 0) {
+                updatePaddle(e.touches[0].clientX);
+            }
+        }, { passive: true });
+
+        canvas.addEventListener("mousemove", (e) => {
+            updatePaddle(e.clientX);
+        });
     }
 
     function createPlayerState(id, canvas) {
@@ -175,22 +197,25 @@
         const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
         playersState.forEach((p) => {
             const ctrl = playerConfigs[p.id].control;
-            p.leftPressed = false; p.rightPressed = false;
 
             if (ctrl === "keys_ad") {
-                if (keysDown["KeyA"]) p.leftPressed = true;
-                if (keysDown["KeyD"]) p.rightPressed = true;
+                if (keysDown["KeyA"]) p.paddleX -= 6;
+                if (keysDown["KeyD"]) p.paddleX += 6;
             } else if (ctrl === "keys_arrows") {
-                if (keysDown["ArrowLeft"]) p.leftPressed = true;
-                if (keysDown["ArrowRight"]) p.rightPressed = true;
+                if (keysDown["ArrowLeft"]) p.paddleX -= 6;
+                if (keysDown["ArrowRight"]) p.paddleX += 6;
             } else if (ctrl.startsWith("gamepad_")) {
                 const gpIdx = parseInt(ctrl.split("_")[1]);
                 const gp = gamepads[gpIdx];
                 if (gp) {
-                    if (gp.axes[0] < -0.3 || (gp.buttons[14] && gp.buttons[14].pressed)) p.leftPressed = true;
-                    if (gp.axes[0] > 0.3 || (gp.buttons[15] && gp.buttons[15].pressed)) p.rightPressed = true;
+                    if (gp.axes[0] < -0.3 || (gp.buttons[14] && gp.buttons[14].pressed)) p.paddleX -= 6;
+                    if (gp.axes[0] > 0.3 || (gp.buttons[15] && gp.buttons[15].pressed)) p.paddleX += 6;
                 }
             }
+
+            // منع خروج المضرب خارج حدود الكانفاس
+            if (p.paddleX < 0) p.paddleX = 0;
+            if (p.paddleX > p.canvas.width - p.paddleWidth) p.paddleX = p.canvas.width - p.paddleWidth;
         });
     }
 
@@ -243,9 +268,6 @@
             ctx.fillStyle = playerColors[p.id];
             ctx.fill();
             ctx.closePath();
-
-            if (p.leftPressed && p.paddleX > 0) p.paddleX -= 5;
-            if (p.rightPressed && p.paddleX < canvas.width - p.paddleWidth) p.paddleX += 5;
 
             ctx.beginPath();
             ctx.roundRect(p.paddleX, canvas.height - p.paddleHeight - 5, p.paddleWidth, p.paddleHeight, 4);
