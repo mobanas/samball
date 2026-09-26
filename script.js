@@ -2,51 +2,33 @@
     'use strict';
 
     document.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('keydown', e => {
-        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) || (e.ctrlKey && e.key === 'U')) {
-            e.preventDefault();
-        }
-    });
 
+    // الشاشات
     const homeScreen = document.getElementById("homeScreen");
     const levelMenuScreen = document.getElementById("levelMenuScreen");
+    const multiSetupScreen = document.getElementById("multiSetupScreen");
     const gameScreen = document.getElementById("gameScreen");
     const shopScreen = document.getElementById("shopScreen");
 
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas ? canvas.getContext("2d") : null;
-
-    const scoreEl = document.getElementById("score");
-    const livesEl = document.getElementById("lives");
-    const gameCoinsEl = document.getElementById("gameCoins");
-    const totalCoinsEl = document.getElementById("totalCoins");
-    const currentModeTitle = document.getElementById("currentModeTitle");
-
+    const toastNotification = document.getElementById("toastNotification");
+    const multiCanvasWrapper = document.getElementById("multiCanvasWrapper");
     const overlay = document.getElementById("messageOverlay");
     const overlayTitle = document.getElementById("overlayTitle");
     const overlayText = document.getElementById("overlayText");
     const startBtn = document.getElementById("startBtn");
 
-    let score = 0;
-    let lives = 3;
     let coins = localStorage.getItem('samball_coins') ? parseInt(localStorage.getItem('samball_coins')) : 0;
-    let currentDifficulty = 1;
-    let gameRunning = false;
-    let animationFrameId = null;
-
     let unlockedLevel = localStorage.getItem('samball_unlocked') ? parseInt(localStorage.getItem('samball_unlocked')) : 1;
     let equippedBall = localStorage.getItem('samball_ball') || 'ball_0';
     let ownedBalls = JSON.parse(localStorage.getItem('samball_owned_balls')) || ['ball_0'];
     let customImageBase64 = localStorage.getItem('samball_custom_img') || null;
 
-    let installTime = localStorage.getItem('samball_install_time');
-    if (!installTime) {
-        installTime = Date.now();
-        localStorage.setItem('samball_install_time', installTime);
-    }
-    const twoDaysInMillis = 2 * 24 * 60 * 60 * 1000;
-    const isFirstTwoDays = (Date.now() - parseInt(installTime)) < twoDaysInMillis;
-    const customBallPrice = isFirstTwoDays ? 0 : 2500;
+    let isMultiplayer = false;
+    let playerCount = 2;
+    let gameRunning = false;
+    let animationFrameId = null;
+    let playerConfigs = [];
+    let playersState = [];
 
     const ballsDatabase = [
         { id: 'ball_0', name: "الكرة الكلاسيكية", price: 0, color: "#ff4757" },
@@ -61,441 +43,315 @@
         { id: 'ball_9', name: "فلاش ⚡", price: 600, color: "#d35400" }
     ];
 
-    // تم تخفيض سرعة المستوى الأول هنا لتكون بطيئة ومناسبة جداً للمبتدئين
-    const speeds = {
-        1: { dx: 2.0, dy: -2.5 },
-        2: { dx: 4.5, dy: -6.0 },
-        3: { dx: 6.0, dy: -8.0 },
-        4: { dx: 7.5, dy: -10.5 },
-        5: { dx: 9.5, dy: -13.0 }
-    };
+    const playerColors = ["#ff4757", "#1e90ff", "#2ed573", "#ffa502"];
 
-    const modeNames = {
-        1: "المستوى 1: سهل 🟢",
-        2: "المستوى 2: متوسط 🟡",
-        3: "المستوى 3: صعب 🟠",
-        4: "المستوى 4: احترافي 🔴",
-        5: "المستوى 5: مستحيل 💀"
-    };
-
-    let x = canvas ? canvas.width / 2 : 0;
-    let y = canvas ? canvas.height - 40 : 0;
-    let dx = 4;
-    let dy = -5;
-    const ballRadius = 9;
-
-    const paddleHeight = 14;
-    const paddleWidth = 90;
-    let paddleX = canvas ? (canvas.width - paddleWidth) / 2 : 0;
-
-    let rightPressed = false;
-    let leftPressed = false;
-    let customBallImgObj = null;
-
-    if (customImageBase64) {
-        customBallImgObj = new Image();
-        customBallImgObj.src = customImageBase64;
+    // إشعار فوري (Toast) لمدة ثانيتين
+    function showToast(msg) {
+        if (!toastNotification) return;
+        toastNotification.innerText = msg;
+        toastNotification.classList.remove("hidden");
+        setTimeout(() => {
+            toastNotification.classList.add("hidden");
+        }, 2000);
     }
 
-    function updateCoinsDisplay() {
-        if (gameCoinsEl) gameCoinsEl.innerText = coins;
-        if (totalCoinsEl) totalCoinsEl.innerText = coins;
-        localStorage.setItem('samball_coins', coins);
+    // اكتشاف أجهزة التحكم (Gamepad)
+    window.addEventListener("gamepadconnected", (e) => {
+        showToast(`🎮 تم توصيل ذراع التحكم: ${e.gamepad.id.substring(0, 15)}...`);
+        renderMultiSetup();
+    });
+
+    window.addEventListener("gamepaddisconnected", () => {
+        showToast("⚠️ تم فصل ذراع التحكم");
+        renderMultiSetup();
+    });
+
+    // إعدادات اللاعبين المتاحة
+    window.setPlayerCount = function (count) {
+        playerCount = count;
+        document.querySelectorAll('.count-btn').forEach(btn => btn.classList.remove('active'));
+        if (count === 2) document.getElementById('btn2Players').classList.add('active');
+        if (count === 3) document.getElementById('btn3Players').classList.add('active');
+        if (count === 4) document.getElementById('btn4Players').classList.add('active');
+        renderMultiSetup();
+    };
+
+    function openMultiplayerSetup() {
+        if (homeScreen) homeScreen.classList.add("hidden");
+        if (multiSetupScreen) multiSetupScreen.classList.remove("hidden");
+        renderMultiSetup();
     }
 
-    function renderShop() {
-        updateCoinsDisplay();
-        const shopGrid = document.getElementById("shopGrid");
-        if (!shopGrid) return;
-        shopGrid.innerHTML = "";
+    function renderMultiSetup() {
+        const grid = document.getElementById("playersSetupGrid");
+        if (!grid) return;
+        grid.innerHTML = "";
 
-        ballsDatabase.forEach(ball => {
-            const isOwned = ownedBalls.includes(ball.id);
-            const isEquipped = equippedBall === ball.id;
+        const gamepads = navigator.getGamepads ? Array.from(navigator.getGamepads()).filter(Boolean) : [];
 
-            const itemDiv = document.createElement("div");
-            itemDiv.className = "shop-item";
-            itemDiv.innerHTML = `
-                <div class="item-preview" style="background-color: ${ball.color}; box-shadow: 0 0 8px ${ball.color}"></div>
-                <h4>${ball.name}</h4>
-                <p>${ball.price === 0 ? "مجاني" : ball.price + " 🪙"}</p>
-                <button class="shop-btn ${isEquipped ? 'equipped' : ''}">${isEquipped ? 'مستخدم' : (isOwned ? 'تجهيز' : 'شراء')}</button>
+        for (let i = 0; i < playerCount; i++) {
+            const card = document.createElement("div");
+            card.className = `player-card-setup p${i + 1}`;
+
+            let defaultCtrl = "keys_ad";
+            if (i === 1) defaultCtrl = "keys_arrows";
+            if (i === 2 && gamepads[0]) defaultCtrl = "gamepad_0";
+            if (i === 3 && gamepads[1]) defaultCtrl = "gamepad_1";
+
+            let optionsHtml = `
+                <option value="keys_ad" ${defaultCtrl === 'keys_ad' ? 'selected' : ''}>كيبورد (A / D)</option>
+                <option value="keys_arrows" ${defaultCtrl === 'keys_arrows' ? 'selected' : ''}>كيبورد (الأسهم)</option>
+                <option value="mouse" ${i === 0 ? '' : ''}>الماوس / اللمس</option>
             `;
 
-            const btn = itemDiv.querySelector("button");
-            btn.onclick = () => {
-                if (isEquipped) return;
-                if (isOwned) {
-                    equipBall(ball.id);
-                } else {
-                    buyBall(ball.id, ball.price);
-                }
-            };
+            gamepads.forEach((gp, idx) => {
+                optionsHtml += `<option value="gamepad_${idx}" ${defaultCtrl === `gamepad_${idx}` ? 'selected' : ''}>ذراع تحكم ${idx + 1}</option>`;
+            });
 
-            shopGrid.appendChild(itemDiv);
-        });
-
-        const customPreview = document.getElementById("customPreview");
-        const equipCustomBtn = document.getElementById("equipCustomBtn");
-        const customSectionTitle = document.getElementById("customSectionTitle");
-        
-        if (customPreview && equipCustomBtn) {
-            const isCustomOwned = ownedBalls.includes('custom');
-            const isCustomEquipped = equippedBall === 'custom';
-
-            if (customSectionTitle) {
-                if (isFirstTwoDays) {
-                    customSectionTitle.innerText = "🖼️ كرتك الخاصة (مجانية لفترة أول يومين للمستخدمين!)";
-                } else {
-                    customSectionTitle.innerText = "🖼️ كرتك الخاصة (الكرة الأغلى والأكثر تميزاً - 2500 🪙)";
-                }
-            }
-
-            if (customImageBase64) {
-                customPreview.style.backgroundImage = `url(${customImageBase64})`;
-                customPreview.classList.remove("hidden");
-            }
-            equipCustomBtn.classList.remove("hidden");
-
-            if (isCustomEquipped) {
-                equipCustomBtn.innerText = "مستخدم حالياً";
-                equipCustomBtn.className = "shop-btn equipped";
-            } else if (isCustomOwned) {
-                equipCustomBtn.innerText = "تجهيز كرتك الخاصة";
-                equipCustomBtn.className = "shop-btn";
-            } else {
-                equipCustomBtn.innerText = customBallPrice === 0 ? "اكتسبها مجاناً الآن!" : `شراء بـ (${customBallPrice} 🪙)`;
-                equipCustomBtn.className = "shop-btn";
-            }
-        }
-    }
-
-    function buyBall(ballId, price) {
-        if (coins >= price) {
-            coins -= price;
-            ownedBalls.push(ballId);
-            equippedBall = ballId;
-            localStorage.setItem('samball_owned_balls', JSON.stringify(ownedBalls));
-            localStorage.setItem('samball_ball', equippedBall);
-            renderShop();
-            alert("🎉 تم الشراء والتجهيز بنجاح!");
-        } else {
-            alert("❌ لا تمتلك كوينز كافية! العب واجمع المزيد من النقاط.");
-        }
-    }
-
-    function equipBall(ballId) {
-        equippedBall = ballId;
-        localStorage.setItem('samball_ball', equippedBall);
-        renderShop();
-    }
-
-    window.handleCustomPhoto = function (e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function (event) {
-                customImageBase64 = event.target.result;
-                localStorage.setItem('samball_custom_img', customImageBase64);
-
-                customBallImgObj = new Image();
-                customBallImgObj.src = customImageBase64;
-
-                if (ownedBalls.includes('custom')) {
-                    equipBall('custom');
-                } else {
-                    if (coins >= customBallPrice) {
-                        if (customBallPrice > 0) coins -= customBallPrice;
-                        ownedBalls.push('custom');
-                        localStorage.setItem('samball_owned_balls', JSON.stringify(ownedBalls));
-                        equipBall('custom');
-                        alert("🌟 مبروك! تم تجهيز كرتك الخاصة بنجاح.");
-                    } else {
-                        alert(`❌ رصيدك لا يكفي! سعرها الآن ${customBallPrice} كوينز.`);
-                        renderShop();
-                    }
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    window.equipCustomBall = function () {
-        if (!customImageBase64) {
-            document.getElementById('userPhotoInput').click();
-            return;
-        }
-        if (ownedBalls.includes('custom')) {
-            equipBall('custom');
-        } else {
-            buyBall('custom', customBallPrice);
-        }
-    };
-
-    function openGameMenu() {
-        if (homeScreen) homeScreen.classList.add("hidden");
-        if (levelMenuScreen) levelMenuScreen.classList.remove("hidden");
-        renderLevels();
-    }
-
-    function openShopMenu() {
-        if (homeScreen) homeScreen.classList.add("hidden");
-        if (shopScreen) shopScreen.classList.remove("hidden");
-        renderShop();
-    }
-
-    function backToHome() {
-        gameRunning = false;
-        if (animationFrameId) cancelAnimationFrame(animationFrameId);
-        [levelMenuScreen, shopScreen, gameScreen].forEach(s => s && s.classList.add("hidden"));
-        if (homeScreen) homeScreen.classList.remove("hidden");
-        if (overlay) overlay.classList.add("hidden");
-    }
-
-    function renderLevels() {
-        const container = document.querySelector(".difficulty-buttons");
-        if (!container) return;
-        container.innerHTML = "";
-
-        for (let i = 1; i <= 5; i++) {
-            const btn = document.createElement("button");
-            const isUnlocked = i <= unlockedLevel;
-            btn.className = `diff-btn level-${i} ${isUnlocked ? '' : 'locked'}`;
-            btn.innerHTML = `
-                <span class="diff-title">${modeNames[i]} ${isUnlocked ? '' : '🔒'}</span>
-                <span class="diff-desc">${isUnlocked ? 'متاح للعب' : 'انقذ المستوى السابق للفتح'}</span>
+            card.innerHTML = `
+                <h3 style="color: ${playerColors[i]}">اللاعب ${i + 1} 🎮</h3>
+                <label style="font-size:12px;">جهاز التحكم:</label>
+                <select class="setup-control-select" id="ctrlP${i}">
+                    ${optionsHtml}
+                </select>
             `;
-            btn.onclick = () => {
-                if (isUnlocked) startGame(i);
-                else alert("🔒 هذا المستوى مقفل!");
-            };
-            container.appendChild(btn);
+
+            grid.appendChild(card);
         }
     }
 
-    function backToMenu() {
-        gameRunning = false;
-        if (animationFrameId) cancelAnimationFrame(animationFrameId);
-        if (gameScreen) gameScreen.classList.add("hidden");
-        if (levelMenuScreen) levelMenuScreen.classList.remove("hidden");
-        renderLevels();
-        if (overlay) overlay.classList.add("hidden");
+    function startMultiplayerGame() {
+        playerConfigs = [];
+        for (let i = 0; i < playerCount; i++) {
+            const select = document.getElementById(`ctrlP${i}`);
+            playerConfigs.push({
+                id: i,
+                control: select ? select.value : 'keys_ad',
+                color: playerColors[i]
+            });
+        }
+
+        isMultiplayer = true;
+        if (multiSetupScreen) multiSetupScreen.classList.add("hidden");
+        if (gameScreen) gameScreen.classList.remove("hidden");
+        document.getElementById("singleStats").style.display = "none";
+        document.getElementById("currentModeTitle").innerText = `تحدي ${playerCount} لاعبين 👥`;
+
+        initMultiplayerCanvases();
+        showOverlay("جاهزون للتحدي؟", "ابدأ اللعب الآن");
     }
 
-    document.addEventListener("keydown", e => {
-        if (e.key === "Right" || e.key === "ArrowRight") rightPressed = true;
-        else if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = true;
-    });
+    function initMultiplayerCanvases() {
+        multiCanvasWrapper.innerHTML = "";
+        multiCanvasWrapper.className = `multi-canvas-wrapper players-${playerCount}`;
+        playersState = [];
 
-    document.addEventListener("keyup", e => {
-        if (e.key === "Right" || e.key === "ArrowRight") rightPressed = false;
-        else if (e.key === "Left" || e.key === "ArrowLeft") leftPressed = false;
-    });
+        for (let i = 0; i < playerCount; i++) {
+            const box = document.createElement("div");
+            box.className = `single-player-box p${i + 1}`;
 
-    function getCanvasTouchPos(e) {
-        if (!canvas) return NaN;
-        let rect = canvas.getBoundingClientRect();
-        let clientX = e.clientX || (e.touches && e.touches[0].clientX);
-        return clientX ? (clientX - rect.left) * (canvas.width / rect.width) : NaN;
+            const tag = document.createElement("div");
+            tag.className = "player-tag";
+            tag.style.color = playerColors[i];
+            tag.innerText = `لاعب ${i + 1} | أرواح: 3 | نقاط: 0`;
+            tag.id = `tagP${i}`;
+
+            const canv = document.createElement("canvas");
+            canv.id = `canvasP${i}`;
+            canv.width = 400;
+            canv.height = 300;
+
+            box.appendChild(tag);
+            box.appendChild(canv);
+            multiCanvasWrapper.appendChild(box);
+
+            playersState.push(createPlayerState(i, canv));
+        }
     }
 
-    document.addEventListener("mousemove", e => {
-        if (!canvas || !gameRunning) return;
-        let pos = getCanvasTouchPos(e);
-        if (!isNaN(pos)) paddleX = Math.max(0, Math.min(canvas.width - paddleWidth, pos - paddleWidth / 2));
-    });
-
-    if (canvas) {
-        canvas.addEventListener("touchmove", e => {
-            if (!gameRunning) return;
-            let pos = getCanvasTouchPos(e);
-            if (!isNaN(pos)) paddleX = Math.max(0, Math.min(canvas.width - paddleWidth, pos - paddleWidth / 2));
-            e.preventDefault();
-        }, { passive: false });
+    function createPlayerState(id, canvas) {
+        const ctx = canvas.getContext("2d");
+        const paddleWidth = 70;
+        const paddleHeight = 10;
+        return {
+            id,
+            canvas,
+            ctx,
+            score: 0,
+            lives: 3,
+            x: canvas.width / 2,
+            y: canvas.height - 30,
+            dx: 3 * (Math.random() > 0.5 ? 1 : -1),
+            dy: -4,
+            paddleWidth,
+            paddleHeight,
+            paddleX: (canvas.width - paddleWidth) / 2,
+            leftPressed: false,
+            rightPressed: false,
+            bricks: createBricksForCanvas(),
+            isDead: false
+        };
     }
 
-    const brickRowCount = 5;
-    const brickColumnCount = 7;
-    const brickWidth = 72;
-    const brickHeight = 22;
-    const brickPadding = 10;
-    const brickOffsetTop = 35;
-    const brickOffsetLeft = 27;
-
-    let bricks = [];
-    function initBricks() {
-        bricks = [];
-        for (let c = 0; c < brickColumnCount; c++) {
+    function createBricksForCanvas() {
+        const cols = 5, rows = 4, bricks = [];
+        for (let c = 0; c < cols; c++) {
             bricks[c] = [];
-            for (let r = 0; r < brickRowCount; r++) {
+            for (let r = 0; r < rows; r++) {
                 bricks[c][r] = { x: 0, y: 0, status: 1 };
             }
         }
+        return bricks;
     }
 
-    function startGame(diff) {
-        currentDifficulty = diff;
-        if (levelMenuScreen) levelMenuScreen.classList.add("hidden");
-        if (gameScreen) gameScreen.classList.remove("hidden");
-        if (currentModeTitle) currentModeTitle.innerText = modeNames[diff];
+    // إدارة مدخلات المفاتيح والأزرار
+    const keysDown = {};
+    document.addEventListener("keydown", e => {
+        keysDown[e.code] = true;
+        if (e.key === "Enter" || e.key === "Select") {
+            showToast("🔘 تم الضغط بالريموت / المفتاح");
+        }
+    });
 
-        score = 0;
-        lives = 3;
-        if (scoreEl) scoreEl.innerText = score;
-        if (livesEl) livesEl.innerText = lives;
-        updateCoinsDisplay();
+    document.addEventListener("keyup", e => {
+        keysDown[e.code] = false;
+    });
 
-        initBricks();
-        resetBallAndPaddle();
-        showOverlay(modeNames[diff], "ابدأ اللعب الآن");
+    function updateInputs() {
+        const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+
+        playersState.forEach((p) => {
+            const ctrl = playerConfigs[p.id].control;
+            p.leftPressed = false;
+            p.rightPressed = false;
+
+            if (ctrl === "keys_ad") {
+                if (keysDown["KeyA"]) p.leftPressed = true;
+                if (keysDown["KeyD"]) p.rightPressed = true;
+            } else if (ctrl === "keys_arrows") {
+                if (keysDown["ArrowLeft"]) p.leftPressed = true;
+                if (keysDown["ArrowRight"]) p.rightPressed = true;
+            } else if (ctrl.startsWith("gamepad_")) {
+                const gpIdx = parseInt(ctrl.split("_")[1]);
+                const gp = gamepads[gpIdx];
+                if (gp) {
+                    if (gp.axes[0] < -0.3 || (gp.buttons[14] && gp.buttons[14].pressed)) p.leftPressed = true;
+                    if (gp.axes[0] > 0.3 || (gp.buttons[15] && gp.buttons[15].pressed)) p.rightPressed = true;
+                }
+            }
+        });
     }
 
-    function resetBallAndPaddle() {
-        if (!canvas) return;
-        x = canvas.width / 2;
-        y = canvas.height - 40;
-        const spd = speeds[currentDifficulty];
-        dx = spd.dx * (Math.random() > 0.5 ? 1 : -1);
-        dy = spd.dy;
-        paddleX = (canvas.width - paddleWidth) / 2;
-    }
+    function multiGameLoop() {
+        if (!gameRunning) return;
 
-    function collisionDetection() {
-        for (let c = 0; c < brickColumnCount; c++) {
-            for (let r = 0; r < brickRowCount; r++) {
-                let b = bricks[c][r];
-                if (b.status === 1) {
-                    if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight) {
-                        dy = -dy;
-                        b.status = 0;
-                        score += 10 * currentDifficulty;
-                        coins += currentDifficulty;
-                        if (scoreEl) scoreEl.innerText = score;
-                        updateCoinsDisplay();
+        updateInputs();
 
-                        if (checkWin()) {
-                            gameRunning = false;
-                            if (currentDifficulty >= unlockedLevel && unlockedLevel < 5) {
-                                unlockedLevel = currentDifficulty + 1;
-                                localStorage.setItem('samball_unlocked', unlockedLevel);
-                            }
-                            showOverlay("🎉 انتصرت في هذا المستوى!", "المستوى التالي / إعاده");
+        let activePlayers = 0;
+        let winnerIndex = -1;
+
+        playersState.forEach((p) => {
+            if (p.isDead) return;
+
+            activePlayers++;
+            winnerIndex = p.id;
+
+            const ctx = p.ctx;
+            const canvas = p.canvas;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // رسم الطوب
+            const brickWidth = 60, brickHeight = 15, brickPadding = 8, offsetTop = 25, offsetLeft = 30;
+            let bricksLeft = 0;
+
+            for (let c = 0; c < 5; c++) {
+                for (let r = 0; r < 4; r++) {
+                    let b = p.bricks[c][r];
+                    if (b.status === 1) {
+                        bricksLeft++;
+                        let bx = (c * (brickWidth + brickPadding)) + offsetLeft;
+                        let by = (r * (brickHeight + brickPadding)) + offsetTop;
+                        b.x = bx; b.y = by;
+                        ctx.beginPath();
+                        ctx.roundRect(bx, by, brickWidth, brickHeight, 3);
+                        ctx.fillStyle = playerColors[r % playerColors.length];
+                        ctx.fill();
+                        ctx.closePath();
+
+                        // تصادم الكرة بالطوب
+                        if (p.x > bx && p.x < bx + brickWidth && p.y > by && p.y < by + brickHeight) {
+                            p.dy = -p.dy;
+                            b.status = 0;
+                            p.score += 10;
+                            document.getElementById(`tagP${p.id}`).innerText = `لاعب ${p.id + 1} | أرواح: ${p.lives} | نقاط: ${p.score}`;
                         }
                     }
                 }
             }
-        }
-    }
 
-    function checkWin() {
-        return bricks.every(col => col.every(b => b.status === 0));
-    }
+            // فوز اللاعب بتحطيم كل الطوب
+            if (bricksLeft === 0) {
+                gameRunning = false;
+                showOverlay(`🎉 مبروك! اللاعب ${p.id + 1} هو الفائز بإنهاء الطوب أولاً!`, "تحدي جديد");
+                return;
+            }
 
-    function resetPlayerAccountOnLoss() {
-        coins = 0;
-        equippedBall = 'ball_0';
-        ownedBalls = ['ball_0'];
-        localStorage.setItem('samball_coins', 0);
-        localStorage.setItem('samball_ball', 'ball_0');
-        localStorage.setItem('samball_owned_balls', JSON.stringify(['ball_0']));
-        updateCoinsDisplay();
-    }
-
-    function drawBall() {
-        if (!ctx) return;
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
-
-        if (equippedBall === 'custom' && customBallImgObj) {
-            ctx.clip();
-            ctx.drawImage(customBallImgObj, x - ballRadius, y - ballRadius, ballRadius * 2, ballRadius * 2);
-        } else {
-            const currentBallObj = ballsDatabase.find(b => b.id === equippedBall) || ballsDatabase[0];
-            ctx.fillStyle = currentBallObj.color;
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = currentBallObj.color;
+            // رسم الكرة
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
+            ctx.fillStyle = playerColors[p.id];
             ctx.fill();
-        }
+            ctx.closePath();
 
-        ctx.closePath();
-        ctx.restore();
-    }
+            // رسم المضارب
+            if (p.leftPressed && p.paddleX > 0) p.paddleX -= 5;
+            if (p.rightPressed && p.paddleX < canvas.width - p.paddleWidth) p.paddleX += 5;
 
-    function drawPaddle() {
-        if (!ctx || !canvas) return;
-        ctx.beginPath();
-        ctx.roundRect(paddleX, canvas.height - paddleHeight - 8, paddleWidth, paddleHeight, 6);
-        ctx.fillStyle = "#2ed573";
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = "#2ed573";
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.closePath();
-    }
+            ctx.beginPath();
+            ctx.roundRect(p.paddleX, canvas.height - p.paddleHeight - 5, p.paddleWidth, p.paddleHeight, 4);
+            ctx.fillStyle = "#ffffff";
+            ctx.fill();
+            ctx.closePath();
 
-    const brickColors = ["#ff4757", "#ffa502", "#2ed573", "#1e90ff", "#9b59b6"];
-
-    function drawBricks() {
-        if (!ctx) return;
-        for (let c = 0; c < brickColumnCount; c++) {
-            for (let r = 0; r < brickRowCount; r++) {
-                if (bricks[c][r].status === 1) {
-                    let brickX = (c * (brickWidth + brickPadding)) + brickOffsetLeft;
-                    let brickY = (r * (brickHeight + brickPadding)) + brickOffsetTop;
-                    bricks[c][r].x = brickX;
-                    bricks[c][r].y = brickY;
-                    ctx.beginPath();
-                    ctx.roundRect(brickX, brickY, brickWidth, brickHeight, 4);
-                    ctx.fillStyle = brickColors[r % brickColors.length];
-                    ctx.fill();
-                    ctx.closePath();
-                }
-            }
-        }
-    }
-
-    function draw() {
-        if (!gameRunning || !ctx || !canvas) return;
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawBricks();
-        drawBall();
-        drawPaddle();
-        collisionDetection();
-
-        if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) dx = -dx;
-        if (y + dy < ballRadius) dy = -dy;
-        else if (y + dy > canvas.height - ballRadius - 5) {
-            if (x > paddleX && x < paddleX + paddleWidth) {
-                let hitPoint = x - (paddleX + paddleWidth / 2);
-                dx = hitPoint * 0.2;
-                dy = -Math.abs(speeds[currentDifficulty].dy);
-            } else {
-                lives--;
-                if (livesEl) livesEl.innerText = lives;
-                if (lives <= 0) {
-                    gameRunning = false;
-                    resetPlayerAccountOnLoss();
-                    showOverlay("💥 خسرت اللعبة وفقدت رصيدك!", "حاول مجدداً");
-                    return;
+            // حركة الكرة والتصادم
+            if (p.x + p.dx > canvas.width - 7 || p.x + p.dx < 7) p.dx = -p.dx;
+            if (p.y + p.dy < 7) p.dy = -p.dy;
+            else if (p.y + p.dy > canvas.height - 12) {
+                if (p.x > p.paddleX && p.x < p.paddleX + p.paddleWidth) {
+                    p.dy = -Math.abs(p.dy);
                 } else {
-                    resetBallAndPaddle();
+                    p.lives--;
+                    document.getElementById(`tagP${p.id}`).innerText = `لاعب ${p.id + 1} | أرواح: ${p.lives} | نقاط: ${p.score}`;
+                    if (p.lives <= 0) {
+                        p.isDead = true;
+                    } else {
+                        p.x = canvas.width / 2;
+                        p.y = canvas.height - 30;
+                        p.dy = -4;
+                    }
                 }
             }
+
+            p.x += p.dx;
+            p.y += p.dy;
+        });
+
+        if (activePlayers === 1 && playerCount > 1) {
+            gameRunning = false;
+            showOverlay(`👑 فاز اللاعب ${winnerIndex + 1} بسبب صموده للنهاية!`, "تحدي جديد");
+            return;
+        } else if (activePlayers === 0) {
+            gameRunning = false;
+            showOverlay("💥 خسر جميع اللاعبين!", "حاولوا مجدداً");
+            return;
         }
 
-        if (rightPressed && paddleX < canvas.width - paddleWidth) paddleX += 8;
-        else if (leftPressed && paddleX > 0) paddleX -= 8;
-
-        x += dx;
-        y += dy;
-        animationFrameId = requestAnimationFrame(draw);
+        animationFrameId = requestAnimationFrame(multiGameLoop);
     }
 
     function showOverlay(title, btnText) {
         if (overlayTitle) overlayTitle.innerText = title;
-        if (overlayText) overlayText.innerText = `النقاط: ${score} | الأرواح المتبقية: ${lives}`;
+        if (overlayText) overlayText.innerText = "استمتعوا بالتحدي الآن!";
         if (startBtn) startBtn.innerText = btnText;
         if (overlay) overlay.classList.remove("hidden");
     }
@@ -503,25 +359,34 @@
     if (startBtn) {
         startBtn.addEventListener("click", () => {
             if (overlay) overlay.classList.add("hidden");
-            score = 0;
-            lives = 3;
-            if (scoreEl) scoreEl.innerText = score;
-            if (livesEl) livesEl.innerText = lives;
-            initBricks();
-            resetBallAndPaddle();
             gameRunning = true;
-            draw();
+            if (isMultiplayer) {
+                animationFrameId = requestAnimationFrame(multiGameLoop);
+            }
         });
     }
 
-    window.openGameMenu = openGameMenu;
-    window.backToHome = backToHome;
-    window.openShopShop = openShopMenu;
-    window.openShopMenu = openShopMenu;
-    window.backToMenu = backToMenu;
+    window.openGameMenu = () => {
+        showToast("🎮 جاري فتح التحدي الفردي");
+        if (homeScreen) homeScreen.classList.add("hidden");
+        if (levelMenuScreen) levelMenuScreen.classList.remove("hidden");
+    };
+
+    window.openMultiplayerSetup = openMultiplayerSetup;
+    window.openShopMenu = () => {
+        if (homeScreen) homeScreen.classList.add("hidden");
+        if (shopScreen) shopScreen.classList.remove("hidden");
+    };
+
+    window.backToHome = () => {
+        gameRunning = false;
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        [levelMenuScreen, shopScreen, gameScreen, multiSetupScreen].forEach(s => s && s.classList.add("hidden"));
+        if (homeScreen) homeScreen.classList.remove("hidden");
+        if (overlay) overlay.classList.add("hidden");
+    };
 
     document.addEventListener("DOMContentLoaded", () => {
-        updateCoinsDisplay();
+        showToast("🌟 أهلاً بك في لعبة Samball!");
     });
 })();
-

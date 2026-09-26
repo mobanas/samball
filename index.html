@@ -10,6 +10,9 @@
 </head>
 <body>
 
+    <!-- إشعار التوصيل (يظهر لمدة ثانيتين عند توصيل الذراع أو الريموت) -->
+    <div id="toastNotification" class="toast-notification hidden"></div>
+
     <!-- شاشة الصفحة الرئيسية -->
     <div id="homeScreen" class="screen">
         <div class="home-container">
@@ -20,16 +23,25 @@
             </header>
 
             <div class="apps-grid">
-                <div class="app-card" onclick="openGameMenu()">
+                <div class="app-card" tabindex="0" onclick="openGameMenu()">
                     <div class="app-icon-wrapper">
                         <img src="logo.png" alt="بدء اللعب" class="app-icon">
                     </div>
-                    <h3>بدء التحدي</h3>
+                    <h3>بدء التحدي (فردي)</h3>
                     <p>مستويات متدرجة متصاعدة</p>
                     <span class="app-badge">تشغيل 🎮</span>
                 </div>
 
-                <div class="app-card shop-card" onclick="openShopMenu()">
+                <div class="app-card multiplayer-card" tabindex="0" onclick="openMultiplayerSetup()">
+                    <div class="app-icon-wrapper">
+                        <span class="app-icon">👥</span>
+                    </div>
+                    <h3>تحدي شاشة منقسمة</h3>
+                    <p>لعب جماعي (من 2 إلى 4 لاعبين)</p>
+                    <span class="app-badge multi-badge">تحدي ⚔️</span>
+                </div>
+
+                <div class="app-card shop-card" tabindex="0" onclick="openShopMenu()">
                     <div class="app-icon-wrapper">
                         <span class="app-icon shop-icon">🛒</span>
                     </div>
@@ -45,14 +57,37 @@
         </div>
     </div>
 
-    <!-- شاشة اختيار مستويات الصعوبة -->
+    <!-- شاشة إعداد اللعب الجماعي (اختيار عدد اللاعبين وأجهزة التحكم) -->
+    <div id="multiSetupScreen" class="screen hidden">
+        <div class="menu-container">
+            <h2>إعداد التحدي الجماعي 👥</h2>
+            <p>اختر عدد اللاعبين وأجهزة التحكم المتصلة:</p>
+            
+            <div class="player-count-selector">
+                <button class="count-btn active" id="btn2Players" onclick="setPlayerCount(2)">2 لاعبين</button>
+                <button class="count-btn" id="btn3Players" onclick="setPlayerCount(3)">3 لاعبين</button>
+                <button class="count-btn" id="btn4Players" onclick="setPlayerCount(4)">4 لاعبين</button>
+            </div>
+
+            <div class="players-setup-grid" id="playersSetupGrid">
+                <!-- يتم توليد إعدادات أجهزة التحكم هنا ديناميكياً -->
+            </div>
+
+            <div class="setup-actions">
+                <button class="start-multi-btn" onclick="startMultiplayerGame()">🚀 ابدأ التحدي الآن</button>
+                <button class="back-btn" onclick="backToHome()">العودة للرئيسية</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- شاشة اختيار مستويات الصعوبة (فردي) -->
     <div id="levelMenuScreen" class="screen hidden">
         <div class="menu-container">
             <h2>اختر المستوى</h2>
             <p>يجب عليك الفوز بكل مستوى لفتح المستوى الذي يليه:</p>
             
             <div class="difficulty-buttons">
-                <!-- يتم توليد المستويات عبر JavaScript بشكل ديناميكي مرتب -->
+                <!-- يتم توليد المستويات عبر JavaScript بشكل ديناميكي -->
             </div>
 
             <button class="back-btn" onclick="backToHome()">العودة للرئيسية</button>
@@ -89,36 +124,39 @@
         </div>
     </div>
 
-    <!-- شاشة اللعبة الفعلية -->
+    <!-- شاشة اللعبة الفعلية (فردي / جماعي شاشة منقسمة) -->
     <div id="gameScreen" class="screen hidden">
         <div class="game-wrapper">
             <header class="game-header">
                 <div class="logo-area">
-                    <!-- زر الخروج المدور في الأعلى -->
-                    <button class="round-exit-btn" onclick="backToMenu()" title="العودة لاختيار المستويات">⬅</button>
+                    <button class="round-exit-btn" onclick="backToHome()" title="العودة للرئيسية">⬅</button>
                     <h1 id="currentModeTitle">Samball</h1>
                 </div>
-                <div class="stats-panel">
+                <div id="singleStats" class="stats-panel">
                     <div class="stat-box">النقاط: <span id="score">0</span></div>
                     <div class="stat-box">الأرواح: <span id="lives">3</span></div>
                     <div class="stat-box coins-box">الرصيد: <span id="gameCoins">0</span> 🪙</div>
                 </div>
             </header>
 
-            <main class="canvas-container">
-                <canvas id="gameCanvas" width="600" height="400"></canvas>
+            <main class="canvas-container" id="canvasContainer">
+                <!-- شاشات الكانفاس المتعددة تولد هنا تلقائياً حسَب عدد اللاعبين -->
+                <div id="multiCanvasWrapper" class="multi-canvas-wrapper">
+                    <canvas id="gameCanvas" width="600" height="400"></canvas>
+                </div>
+
                 <div id="messageOverlay" class="overlay hidden">
                     <h2 id="overlayTitle">جاهز للبدء؟</h2>
-                    <p id="overlayText">استخدم الماوس أو الأسهم أو اللمس للتحكم</p>
+                    <p id="overlayText">استخدم الماوس أو الأسهم أو اللمس أو ذراع التحكم</p>
                     <div class="overlay-buttons">
                         <button id="startBtn">ابدأ التحدي</button>
-                        <button id="menuBtn" onclick="backToMenu()">القائمة الرئيسية</button>
+                        <button id="menuBtn" onclick="backToHome()">القائمة الرئيسية</button>
                     </div>
                 </div>
             </main>
         </div>
     </div>
 
-    <script src="script.js?v=2.2"></script>
+    <script src="script.js?v=3.0"></script>
 </body>
 </html>
